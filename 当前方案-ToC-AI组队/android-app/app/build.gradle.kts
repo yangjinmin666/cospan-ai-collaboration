@@ -62,6 +62,7 @@ val syncWebAssets by tasks.registering(Sync::class) {
             "offline.html",
             "sw.js",
             "assets/**",
+            "shells/**",
         )
         filesMatching("index.html") {
             filter { line ->
