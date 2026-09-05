@@ -27,12 +27,13 @@ function createApiClient({ baseUrl, request, storage, onUnauthorized = null }) {
   if (!normalizedBaseUrl) throw new Error("A COSPAN API base URL is required.");
   if (typeof request !== "function") throw new Error("A request adapter is required.");
 
-  async function call(method, path, { data, query, authenticate = true, headers = {} } = {}) {
+  async function call(method, path, { data, query, authenticate = true, headers = {}, timeout } = {}) {
     const token = authenticate ? storage.get(ACCESS_TOKEN_KEY) : null;
     const response = await request({
       url: `${normalizedBaseUrl}${path}${queryString(query)}`,
       method,
       data,
+      timeout,
       header: {
         "content-type": "application/json",
         "x-cospan-surface": "mobile",

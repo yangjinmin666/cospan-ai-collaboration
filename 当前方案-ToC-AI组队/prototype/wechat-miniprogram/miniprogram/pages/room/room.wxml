@@ -1,4 +1,14 @@
-<view class="page" wx:if="{{room}}">
+<view class="page">
+  <view class="card room-feedback" wx:if="{{loadError || (!room && loading)}}">
+    <view class="card-title">{{loadError ? '暂时无法更新协作空间' : '正在加载协作空间'}}</view>
+    <view class="meta">{{loadError || '正在读取共同计划与任务进度…'}}</view>
+    <view class="meta" wx:if="{{loadError && room}}">下方是上次读取的内容，请更新后再操作。</view>
+    <button wx:if="{{loadError && projectId}}" class="secondary-button agent-button" disabled="{{loading}}" loading="{{loading}}" bindtap="load">重新加载</button>
+  </view>
+  <view class="room-feedback action-feedback" wx:if="{{actionError}}">
+    <text selectable="{{true}}">{{actionError}}</text>
+  </view>
+  <block wx:if="{{room}}">
   <view class="hero">
     <view class="eyebrow">COSPAN SPACE</view>
     <view class="title">{{room.project.title}}</view>
@@ -11,13 +21,14 @@
       <view class="plan-state">{{room.starter_pack ? room.starter_pack.status : '尚未生成'}}</view>
     </view>
     <view class="meta">{{room.members.length}} 位成员·{{room.confirmation_progress.confirmed}}/{{room.confirmation_progress.required}} 人已确认</view>
+    <view class="meta plan-source" wx:if="{{room.planSourceLabel}}">{{room.planSourceLabel}}</view>
     <view class="notice" wx:if="{{room.starter_pack}}">
       Agent 建议不会自动派单。每项任务需要成员亲自领取，全员确认后才能开始执行。
     </view>
-    <button wx:if="{{!room.starter_pack}}" class="primary-button" loading="{{working}}" bindtap="generatePlan">
-      请 Agent 生成 3 项起步任务
+    <button wx:if="{{!room.starter_pack}}" class="primary-button" disabled="{{working || loading || loadError}}" loading="{{working}}" bindtap="generatePlan">
+      生成起步任务建议
     </button>
-    <button wx:if="{{room.canConfirmPlan}}" class="secondary-button" loading="{{working}}" bindtap="confirmPlan">
+    <button wx:if="{{room.canConfirmPlan}}" class="secondary-button" disabled="{{working || loading || loadError}}" loading="{{working}}" bindtap="confirmPlan">
       我确认这份共同计划
     </button>
   </view>
@@ -35,8 +46,42 @@
       <view class="meta">负责人：{{item.ownerName}}</view>
       <view class="task-status">{{item.status}}</view>
     </view>
-    <button wx:if="{{item.canClaim}}" class="primary-button" data-task-id="{{item.id}}" bindtap="claimTask">{{item.claimLabel}}</button>
-    <button wx:if="{{item.canStart}}" class="secondary-button" data-task-id="{{item.id}}" data-action="start" bindtap="moveTask">开始执行</button>
-    <button wx:if="{{item.canComplete}}" class="secondary-button" data-task-id="{{item.id}}" data-action="complete" bindtap="moveTask">标记完成</button>
+    <button wx:if="{{item.canClaim}}" class="primary-button" disabled="{{working || loading || loadError}}" data-task-id="{{item.id}}" bindtap="claimTask">{{item.claimLabel}}</button>
+    <button wx:if="{{item.canStart}}" class="secondary-button" disabled="{{working || loading || loadError}}" data-task-id="{{item.id}}" data-action="start" bindtap="moveTask">开始执行</button>
+    <button wx:if="{{item.canComplete}}" class="secondary-button" disabled="{{working || loading || loadError}}" data-task-id="{{item.id}}" data-action="complete" bindtap="moveTask">标记完成</button>
+    <view class="agent-section" wx:if="{{item.mode === 'HUMAN_AGENT' || item.agentRuns.length}}">
+      <view class="agent-heading">Agent 调研简报</view>
+      <view class="meta">AI 提供草稿，负责人核对并决定是否采纳。采纳简报不等于完成任务。</view>
+      <view class="meta" wx:if="{{!item.canRunAgent && !item.agentRuns.length}}">{{item.agentHint}}</view>
+      <button wx:if="{{item.canRunAgent}}" class="secondary-button agent-button" data-task-id="{{item.id}}" disabled="{{working || loading || loadError}}" loading="{{agentTaskId === item.id}}" bindtap="requestAgent">{{agentTaskId === item.id ? '正在生成简报' : '请 Agent 生成调研简报'}}</button>
+      <view class="meta" wx:if="{{agentTaskId === item.id}}">通常需要数十秒，请勿重复提交。</view>
+      <view class="action-feedback" wx:if="{{actionError && actionTaskId === item.id}}">{{actionError}}</view>
+      <view class="agent-brief" wx:for="{{item.agentRuns}}" wx:for-item="run" wx:key="id">
+        <view class="status-line"><text class="agent-heading">调研结果</text><text class="task-status">{{run.statusLabel}}</text></view>
+        <text wx:if="{{run.output.brief_md}}" class="brief-body" selectable="{{true}}">{{run.output.brief_md}}</text>
+        <view wx:if="{{run.output.key_terms.length}}" class="brief-part">
+          <view class="agent-caption">关键概念</view>
+          <text class="brief-tag" wx:for="{{run.output.key_terms}}" wx:for-item="term" wx:key="*this">{{term}}</text>
+        </view>
+        <view wx:if="{{run.output.risks.length}}" class="brief-part">
+          <view class="agent-caption">需要核对的风险</view>
+          <view class="brief-line" wx:for="{{run.output.risks}}" wx:for-item="risk" wx:key="*this">· {{risk}}</view>
+        </view>
+        <view wx:if="{{run.output.next_steps.length}}" class="brief-part">
+          <view class="agent-caption">建议下一步</view>
+          <view class="brief-line" wx:for="{{run.output.next_steps}}" wx:for-item="step" wx:key="*this">· {{step}}</view>
+        </view>
+        <view class="meta" wx:if="{{run.failureMessage}}">{{run.failureMessage}}</view>
+        <view class="meta" wx:if="{{run.status === 'QUEUED' || run.status === 'RUNNING'}}">生成状态会自动刷新，也可以稍后返回查看。</view>
+        <view class="agent-actions" wx:if="{{run.canReview}}">
+          <button class="secondary-button agent-button" disabled="{{working || loading || loadError}}" data-run-id="{{run.id}}" data-decision="APPROVED" bindtap="reviewAgent">采纳简报</button>
+          <button class="secondary-button agent-button" disabled="{{working || loading || loadError}}" data-run-id="{{run.id}}" data-decision="REJECTED" bindtap="reviewAgent">暂不采纳</button>
+        </view>
+        <button wx:if="{{run.canCancel}}" class="secondary-button agent-button" disabled="{{working || loading || loadError}}" data-run-id="{{run.id}}" bindtap="cancelAgent">取消这次生成</button>
+      </view>
+    </view>
   </view>
+  <view class="meta room-footer">显示最近 10 次 Agent 记录。AI 结果可能有误，请核对关键事实。</view>
+  <button class="secondary-button agent-button" disabled="{{working || loading}}" loading="{{loading}}" bindtap="load">刷新空间进度</button>
+  </block>
 </view>
