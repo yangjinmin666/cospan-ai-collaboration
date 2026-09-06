@@ -1,40 +1,70 @@
-<view class="page">
-  <view class="hero">
-    <view class="eyebrow">今天的协作身份</view>
-    <view class="title">让别人知道为什么要找你</view>
-    <view class="subtitle">这些信息只用于活动内匹配，你随时可以暂停现场可见。</view>
+<view class="onboarding-page">
+  <view class="onboarding-header" style="padding-top: {{headerTop}}px;">
+    <button class="onboarding-back icon-button" bindtap="back"><image class="ui-icon" src="/assets/ui-{{step ? 'back' : 'close'}}.svg" mode="aspectFit" /></button>
+    <view class="onboarding-progress"><view style="width: {{progress}}%;"></view></view>
+    <text class="onboarding-count">{{step + 1}} / 4</text>
   </view>
 
-  <view class="card">
-    <label class="field-label">你希望别人怎么称呼你</label>
-    <input class="input" placeholder="例如：林海" value="{{form.displayName}}" data-field="displayName" bindinput="updateField" />
-
-    <label class="field-label">你今天的角色</label>
-    <input class="input" placeholder="例如：嵌入式工程师" value="{{form.role}}" data-field="role" bindinput="updateField" />
-
-    <label class="field-label">组队状态</label>
-    <picker class="picker" mode="selector" range="{{statuses}}" value="{{statusIndex}}" bindchange="changeStatus">
-      {{form.status}}
-    </picker>
-
-    <label class="field-label">3–5 个技能</label>
-    <input class="input" placeholder="ESP32，IoT，硬件" value="{{form.skills}}" data-field="skills" bindinput="updateField" />
-
-    <label class="field-label">感兴趣的方向</label>
-    <input class="input" placeholder="AI 硬件，空间交互" value="{{form.interests}}" data-field="interests" bindinput="updateField" />
-
-    <label class="field-label">今天可投入的时间</label>
-    <input class="input" placeholder="今晚 18:00–22:00" value="{{form.availability}}" data-field="availability" bindinput="updateField" />
-
-    <label class="field-label">协作偏好</label>
-    <input class="input" placeholder="结对协作，快速原型" value="{{form.collaborationPreferences}}" data-field="collaborationPreferences" bindinput="updateField" />
-
-    <label class="field-label">现在想找什么协作</label>
-    <textarea class="textarea" placeholder="例如：寻找产品与设计搭档" value="{{form.collaborationNeed}}" data-field="collaborationNeed" bindinput="updateField" />
-
-    <label class="field-label">经历证据（可选）</label>
-    <textarea class="textarea" placeholder="作品、项目或经验，用逗号分隔" value="{{form.evidence}}" data-field="evidence" bindinput="updateField" />
+  <view class="onboarding-step" wx:if="{{step === 0}}">
+    <view class="passport-guide">
+      <view class="guide-mark"><image src="/assets/cospan-logo.png" mode="aspectFit" /></view>
+      <view><text>01 / PUBLIC TRAILS</text><view class="guide-title">不用从头自我介绍。</view><view class="guide-copy">先放上你愿意公开的主页。都可以留空，COSPAN 不读取私信或非公开内容。</view></view>
+    </view>
+    <view class="onboarding-link-list">
+      <label class="onboarding-link-row"><view class="link-mark mark-red">RED</view><view><text>小红书</text><input placeholder="粘贴公开主页链接" value="{{form.platformLinks.xiaohongshu}}" data-platform="xiaohongshu" bindinput="updatePlatform" /></view></label>
+      <label class="onboarding-link-row"><view class="link-mark mark-jike">J</view><view><text>即刻</text><input placeholder="粘贴公开主页链接" value="{{form.platformLinks.jike}}" data-platform="jike" bindinput="updatePlatform" /></view></label>
+      <label class="onboarding-link-row"><view class="link-mark">GH</view><view><text>GitHub</text><input placeholder="https://github.com/…" value="{{form.platformLinks.github}}" data-platform="github" bindinput="updatePlatform" /></view></label>
+      <label class="onboarding-link-row"><view class="link-mark mark-linkedin">in</view><view><text>LinkedIn</text><input placeholder="https://linkedin.com/in/…" value="{{form.platformLinks.linkedin}}" data-platform="linkedin" bindinput="updatePlatform" /></view></label>
+    </view>
+    <view class="onboarding-footer"><button class="text-action" bindtap="skip">先看看</button><button class="next-action" bindtap="next">下一步</button></view>
   </view>
 
-  <button class="primary-button" loading="{{saving}}" bindtap="save">保存并开启现场可见</button>
+  <view class="onboarding-step" wx:if="{{step === 1}}">
+    <view class="passport-guide">
+      <view class="guide-mark"><image src="/assets/cospan-logo.png" mode="aspectFit" /></view>
+      <view><text>02 / NOW BUILDING</text><view class="guide-title">你现在在做什么？</view><view class="guide-copy">产品、Demo、实验或还没做完的想法都算。没有公开链接也可以直接写。</view></view>
+    </view>
+    <view class="onboarding-fields">
+      <label><text>作品或项目名称</text><input placeholder="例如：会场协作终端" maxlength="40" value="{{form.projectTitle}}" data-field="projectTitle" bindinput="updateField" /></label>
+      <label><text>公开链接 <em>选填</em></text><input placeholder="https://…" value="{{form.projectUrl}}" data-field="projectUrl" bindinput="updateField" /></label>
+      <label><text>我做了什么</text><textarea placeholder="一句话说清你的角色和结果" maxlength="72" value="{{form.projectSummary}}" data-field="projectSummary" bindinput="updateField" /></label>
+      <label><text>今天可以投入多久</text><input placeholder="例如：今天可投入 6 小时" maxlength="120" value="{{form.availability}}" data-field="availability" bindinput="updateField" /></label>
+    </view>
+    <view class="choice-section"><text>当前协作状态</text><view><button wx:for="{{statuses}}" wx:key="*this" class="{{form.status === item ? 'selected' : ''}}" data-status="{{item}}" bindtap="chooseStatus">{{item}}</button></view></view>
+    <view class="onboarding-footer"><button class="text-action" bindtap="secondary">之后再放</button><button class="next-action" bindtap="next">下一步</button></view>
+  </view>
+
+  <view class="onboarding-step" wx:if="{{step === 2}}">
+    <view class="passport-guide">
+      <view class="guide-mark"><image src="/assets/cospan-logo.png" mode="aspectFit" /></view>
+      <view><text>03 / YOUR VIBE</text><view class="guide-title">让别人用一句话记住你。</view><view class="guide-copy">不用写简历。说清你是谁、会什么、对什么好奇，以及希望怎么一起做事。</view></view>
+    </view>
+    <view class="onboarding-fields">
+      <label><text>你怎么介绍自己的角色</text><input placeholder="例如：AI 产品设计师 / 独立开发者" maxlength="80" value="{{form.role}}" data-field="role" bindinput="updateField" /></label>
+      <label><text>你会什么 <em>3–5 项，用逗号分隔</em></text><input placeholder="产品，交互，AI coding" value="{{form.skills}}" data-field="skills" bindinput="updateField" /></label>
+      <label><text>你在关注什么</text><input placeholder="例如：Agent，硬件，创作者工具" value="{{form.interests}}" data-field="interests" bindinput="updateField" /></label>
+      <label><text>我的 builder's vibe 是</text><textarea placeholder="我是怎样的人，在做什么，想认识怎样的队友？" maxlength="160" value="{{form.vibe}}" data-field="vibe" bindinput="updateField" /></label>
+    </view>
+    <view class="choice-section"><text>我喜欢这样协作</text><view><button wx:for="{{preferenceChoices}}" wx:key="label" class="{{item.selected ? 'selected' : ''}}" data-preference="{{item.label}}" bindtap="togglePreference">{{item.label}}</button></view></view>
+    <view class="onboarding-footer"><button class="text-action" bindtap="secondary">暂且跳过</button><button class="next-action" bindtap="next">下一步</button></view>
+  </view>
+
+  <view class="onboarding-step" wx:if="{{step === 3}}">
+    <view class="passport-guide">
+      <view class="guide-mark"><image src="/assets/cospan-logo.png" mode="aspectFit" /></view>
+      <view><text>04 / READY</text><view class="guide-title">最后，让队友知道怎么称呼你。</view><view class="guide-copy">选择一个头像，确认公开预览。开始发现后，左滑暂不看，右滑表达想认识。</view></view>
+    </view>
+    <view class="avatar-picker">
+      <view class="memoji-avatar avatar-preview {{form.avatar}}"><image class="memoji-sheet" src="/assets/default-memoji-grid.jpg" mode="scaleToFill" /></view>
+      <view><button wx:for="{{avatars}}" wx:key="*this" class="{{form.avatar === item ? 'selected' : ''}}" data-avatar="{{item}}" bindtap="chooseAvatar"><view class="memoji-avatar {{item}}"><image class="memoji-sheet" src="/assets/default-memoji-grid.jpg" mode="scaleToFill" /></view></button></view>
+    </view>
+    <view class="onboarding-fields"><label><text>怎么称呼你</text><input placeholder="输入你的名字或常用昵称" maxlength="40" value="{{form.displayName}}" data-field="displayName" bindinput="updateField" /></label></view>
+    <view class="identity-preview">
+      <view class="preview-head"><view class="memoji-avatar {{form.avatar}}"><image class="memoji-sheet" src="/assets/default-memoji-grid.jpg" mode="scaleToFill" /></view><view><strong>{{form.displayName || '你的名字'}}</strong><text>{{form.role || '你的角色'}}</text></view><em>{{form.status}}</em></view>
+      <view class="preview-vibe">{{form.vibe || '你的一句话自我介绍会出现在这里。'}}</view>
+      <view class="preview-building" wx:if="{{form.projectTitle}}"><text>NOW BUILDING</text><strong>{{form.projectTitle}}</strong></view>
+    </view>
+    <checkbox-group bindchange="togglePublic"><label class="public-confirm"><checkbox value="confirmed" checked="{{form.publicConfirmed}}" color="#347cf8" /><text>我确认将以上资料公开到本场展会；可以随时修改、暂停或撤回</text></label></checkbox-group>
+    <view class="onboarding-footer"><button class="text-action" bindtap="skip">先看看</button><button class="next-action" loading="{{saving}}" disabled="{{saving}}" bindtap="next">完成介绍 · 开始发现</button></view>
+  </view>
 </view>

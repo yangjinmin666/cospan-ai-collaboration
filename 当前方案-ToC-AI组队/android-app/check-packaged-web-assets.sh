@@ -17,6 +17,7 @@ for required_asset in \
   assets/www/index.html \
   assets/www/app.js \
   assets/www/api-client.js \
+  assets/www/assets/ui-icons.mjs \
   assets/www/shells/index.js \
   assets/www/shells/mobile-shell.js \
   assets/www/shells/desktop-shell.js

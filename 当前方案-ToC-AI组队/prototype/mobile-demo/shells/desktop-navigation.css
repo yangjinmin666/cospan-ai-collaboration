@@ -1,0 +1,48 @@
+/* A single work-oriented desktop rail. Mobile retains its four-tab navigation. */
+@media (min-width: 520px) and (hover: hover) and (pointer: fine) {
+  body[data-shell="desktop"] { --desktop-nav-width: 208px; }
+  body[data-shell="desktop"] .desktop-screen > .view { padding-left: calc(var(--desktop-nav-width) + 28px); }
+  body[data-shell="desktop"] .desktop-screen > .wb-view { padding: 0 0 0 var(--desktop-nav-width); }
+  body[data-shell="desktop"] .desktop-app-frame .desktop-app-nav { width: var(--desktop-nav-width); padding: 24px 14px 16px; gap: 24px; background: #f7f8fa; box-shadow: none; border-right: 1px solid #e4e9f0; }
+  body[data-shell="desktop"] .desktop-app-frame .desktop-nav-brand { display: grid; grid-template-columns: 38px 1fr; justify-items: start; align-items: center; height: 42px; gap: 2px 10px; padding: 0 8px; margin: 0 0 10px; }
+  body[data-shell="desktop"] .desktop-app-frame .desktop-nav-brand img { grid-row: 1 / 3; }
+  body[data-shell="desktop"] .desktop-app-frame .desktop-nav-brand strong { display: block; font-size: 15px; letter-spacing: .025em; }
+  body[data-shell="desktop"] .desktop-app-frame .desktop-nav-brand small { display: block; font-size: 12px; color: #7c8795; }
+  body[data-shell="desktop"] .desktop-app-frame .desktop-app-nav button { display: flex; align-items: center; justify-content: flex-start; gap: 10px; min-height: 44px; padding: 10px; border-radius: 7px; }
+  body[data-shell="desktop"] .desktop-app-frame .desktop-nav-items button small { font-size: 14px; font-weight: 500; }
+  body[data-shell="desktop"] .desktop-app-frame .desktop-nav-items button.active { background: #e8effb; color: #245fc8; }
+  .desktop-nav-secondary { display: grid; margin: -12px 0 0 20px; padding-left: 10px; border-left: 1px solid #dbe2ec; }
+  .desktop-nav-secondary button { font-size: 13px; }
+  .desktop-nav-secondary button[aria-current] { color: #245fc8; background: #edf2fa; }
+  .desktop-nav-footer { margin-top: auto; }
+  .desktop-nav-footer > p { padding: 0 10px 16px; font-size: 12px; line-height: 1.6; color: #83909e; }
+  .desktop-nav-footer > div { display: flex; align-items: center; border-top: 1px solid #e0e6ee; padding-top: 12px; }
+  body[data-shell="desktop"] .desktop-app-frame .desktop-app-nav .desktop-account { flex: 1; min-width: 0; padding: 4px; gap: 8px; }
+  body[data-shell="desktop"] .desktop-account > .glyph-sm { flex: 0 0 30px; width: 30px; height: 30px; }
+  body[data-shell="desktop"] .desktop-account > span:last-child { display: block; width: auto; height: auto; font-size: 13px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  body[data-shell="desktop"] .desktop-app-frame .desktop-app-nav .desktop-settings { flex: 0 0 36px; justify-content: center; padding: 6px; }
+  .desktop-settings svg { width: 20px; height: 20px; }
+  body[data-shell="desktop"] .wb-workspace { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  body[data-shell="desktop"] .wb-workspace.has-detail { grid-template-columns: minmax(0, 1fr) 360px; }
+  .wb-project-tabs { display: flex; gap: 22px; margin-top: 30px; border-bottom: 1px solid #e9edf1; overflow-x: auto; }
+  .wb-project-tabs button { flex-shrink: 0; padding: 12px 0; border: 0; border-bottom: 2px solid transparent; background: none; color: #758190; font-size: 13px; }
+  .wb-project-tabs button[aria-current] { color: #245fc8; border-bottom-color: #497ed7; font-weight: 600; }
+  .wb-content-header { margin-top: 24px; }
+}
+@media (min-width: 520px) and (max-width: 1199px) and (hover: hover) and (pointer: fine) {
+  body[data-shell="desktop"] { --desktop-nav-width: 178px; }
+  body[data-shell="desktop"] .wb-workspace.has-detail { grid-template-columns: minmax(0, 1fr); }
+  body[data-shell="desktop"] .wb-detail { width: min(420px, calc(100% - var(--desktop-nav-width))); }
+}
+@media (min-width: 520px) and (max-width: 799px) and (hover: hover) and (pointer: fine) {
+  body[data-shell="desktop"] { --desktop-nav-width: 132px; }
+  body[data-shell="desktop"] .desktop-app-frame .desktop-app-nav { padding-inline: 8px; }
+  body[data-shell="desktop"] .desktop-app-frame .desktop-nav-brand { grid-template-columns: 32px 1fr; gap: 4px; padding: 0; }
+  body[data-shell="desktop"] .desktop-app-frame .desktop-nav-brand img { width: 30px; height: 30px; }
+  body[data-shell="desktop"] .desktop-app-frame .desktop-nav-brand strong { font-size: 12px; }
+  body[data-shell="desktop"] .desktop-app-frame .desktop-nav-items button { gap: 6px; padding-inline: 6px; }
+  body[data-shell="desktop"] .desktop-app-frame .desktop-nav-items button small { font-size: 12px; }
+  body[data-shell="desktop"] .desktop-app-frame .desktop-nav-items button svg { width: 18px; height: 18px; }
+  .wb-project-tabs { gap: 16px; }
+  body[data-shell="desktop"] .desktop-account > span:last-child { max-width: 42px; }
+}

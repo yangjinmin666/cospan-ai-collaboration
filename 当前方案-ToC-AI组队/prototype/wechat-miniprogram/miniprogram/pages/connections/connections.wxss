@@ -1,0 +1,60 @@
+.connections-page { background: #f7f8fa; }
+
+.connections-head { width: max-content; min-height: 88rpx; display: flex; align-items: center; justify-content: flex-start; gap: 18rpx; padding: 0 0 20rpx; }
+.connections-title { color: #17212d; font-size: 43rpx; font-weight: 820; line-height: 1; }
+
+.event-trigger { position: relative; box-sizing: border-box; width: 88rpx; height: 88rpx; flex: 0 0 88rpx; display: flex; align-items: center; justify-content: center; margin: 0; padding: 0; border: 1rpx solid #d7dde5; border-radius: 27rpx; background: #fff; color: #4d5967; }
+
+.connection-hero { box-sizing: border-box; padding: 28rpx 30rpx 30rpx; border: 1rpx solid #d8dee5; border-radius: 34rpx; background: #fff; }
+.connection-summary { display: flex; align-items: baseline; gap: 10rpx; }
+.connection-summary strong { color: #15202c; font-size: 58rpx; font-weight: 820; line-height: .9; }
+.connection-summary text { color: #273341; font-size: 27rpx; font-weight: 750; }
+.connection-summary em { margin-left: auto; padding: 7rpx 12rpx; border-radius: 99rpx; background: #edf3ff; color: #347cf8; font-size: 17rpx; font-style: normal; font-weight: 700; }
+.connection-hero > view:last-child { margin-top: 22rpx; color: #74808b; font-size: 22rpx; line-height: 1.6; }
+
+.connection-filters { display: flex; align-items: center; gap: 20rpx; margin: 28rpx 0 24rpx; }
+.connection-filters button { width: auto; min-width: 92rpx; min-height: 72rpx; margin: 0; padding: 0 21rpx; border: 0; border-radius: 99rpx; background: transparent; color: #737e89; font-size: 22rpx; line-height: 72rpx; }
+.connection-filters button.active { background: #17212d; color: #fff; }
+
+.section-caption { display: flex; align-items: center; justify-content: space-between; margin: 25rpx 4rpx 13rpx; color: #344252; font-size: 24rpx; font-weight: 750; }
+.section-caption strong { min-width: 34rpx; height: 34rpx; display: flex; align-items: center; justify-content: center; border-radius: 99rpx; background: #eaf2ff; color: #347cf8; font-size: 18rpx; }
+
+.connection-card { box-sizing: border-box; margin-bottom: 18rpx; padding: 26rpx; border: 1rpx solid #d7dde5; border-radius: 34rpx; background: #fff; box-shadow: 0 12rpx 30rpx rgba(31, 48, 70, .045); }
+.pending-card { border-color: #cbdcf9; }
+.connection-card-head { display: grid; grid-template-columns: 92rpx minmax(0, 1fr) auto; align-items: center; gap: 18rpx; }
+.connection-avatar { width: 90rpx; height: 90rpx; }
+.connection-avatar.small { width: 72rpx; height: 72rpx; }
+.connection-main { min-width: 0; }
+.connection-name { color: #17212d; font-size: 31rpx; font-weight: 800; line-height: 1.15; }
+.connection-role { overflow: hidden; margin-top: 7rpx; color: #737f8b; font-size: 21rpx; text-overflow: ellipsis; white-space: nowrap; }
+.source-chip { padding: 7rpx 11rpx; border-radius: 12rpx; background: #f1f5ff; color: #2f70d6; font-size: 17rpx; font-weight: 700; white-space: nowrap; }
+
+.connection-context { display: grid; gap: 5rpx; margin: 24rpx 0 20rpx; padding: 19rpx 22rpx; border-radius: 21rpx; background: #f4f6f8; }
+.connection-context text, .connection-context small { color: #7a8590; font-size: 19rpx; }
+.connection-context strong { color: #1f2b38; font-size: 25rpx; line-height: 1.25; }
+
+.conversation-entry { box-sizing: border-box; width: 100%; min-height: 104rpx; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 16rpx; margin: 0; padding: 17rpx 20rpx; border: 1rpx solid #b9cff4; border-radius: 23rpx; background: #eef4ff; color: #17212d; text-align: left; }
+.conversation-entry > view:first-child { min-width: 0; display: grid; gap: 5rpx; }
+.conversation-entry small { color: #2d70d8; font-size: 18rpx; font-weight: 750; }
+.conversation-entry strong { overflow: hidden; font-size: 22rpx; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.conversation-action { display: flex; align-items: center; gap: 10rpx; color: #2d70d8; font-size: 19rpx; font-weight: 750; white-space: nowrap; }
+.conversation-action b { min-width: 30rpx; height: 30rpx; display: flex; align-items: center; justify-content: center; border-radius: 99rpx; background: #347cf8; color: #fff; font-size: 16rpx; }
+.conversation-action i { font-size: 28rpx; font-style: normal; }
+
+.project-entry { width: 100%; min-height: 86rpx; margin: 18rpx 0 0; border: 0; border-radius: 22rpx; background: #347cf8; color: #fff; font-size: 25rpx; font-weight: 800; line-height: 86rpx; box-shadow: 0 12rpx 26rpx rgba(52, 124, 248, .19); }
+
+.pending-message { margin: 22rpx 0 0; padding: 18rpx 20rpx; border-radius: 19rpx; background: #f4f6f8; color: #435365; font-size: 22rpx; line-height: 1.5; }
+.inline-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 13rpx; margin-top: 18rpx; }
+.inline-actions button { min-height: 72rpx; margin: 0; border-radius: 19rpx; font-size: 21rpx; font-weight: 750; line-height: 72rpx; }
+.accept-action { background: #347cf8; color: #fff; }
+.plain-action { border: 1rpx solid #d6dde5; background: #f7f8fa; color: #536170; }
+
+.connection-row { box-sizing: border-box; display: grid; grid-template-columns: 74rpx minmax(0, 1fr) auto; align-items: center; gap: 16rpx; margin-bottom: 14rpx; padding: 19rpx 21rpx; border: 1rpx solid #dbe2ea; border-radius: 24rpx; background: #fff; }
+.cancel-action { min-height: 56rpx; margin: 0; padding: 0 18rpx; border: 0; border-radius: 16rpx; background: #f1f3f6; color: #687583; font-size: 19rpx; line-height: 56rpx; }
+
+.connections-empty { min-height: 650rpx; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40rpx; text-align: center; }
+.connections-empty .meta { max-width: 470rpx; margin-top: 13rpx; }
+.connections-empty .primary-button { width: 270rpx; margin-top: 28rpx; }
+.empty-symbol { position: relative; width: 116rpx; height: 74rpx; margin-bottom: 26rpx; }
+.empty-symbol view { position: absolute; top: 17rpx; width: 58rpx; height: 38rpx; border: 5rpx solid #347cf8; border-radius: 40rpx; transform: rotate(-32deg); }
+.empty-symbol view:first-child { left: 8rpx; }.empty-symbol view:last-child { right: 8rpx; }

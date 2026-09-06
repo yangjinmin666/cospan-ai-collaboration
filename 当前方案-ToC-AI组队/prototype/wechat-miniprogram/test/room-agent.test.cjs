@@ -167,3 +167,18 @@ test("leaving the page cancels automatic refresh", async () => {
   context.page.onHide();
   assert.equal(context.timers.size, 0);
 });
+
+test("task summaries default to collapsed and expanding does not mutate task state", async () => {
+  const context = harness();
+  await context.page.load();
+  assert.equal(Object.keys(context.page.data.expandedTasks).length, 0);
+  const before = JSON.stringify(context.page.data.room.tasks);
+  context.page.toggleTaskDetails({ currentTarget: { dataset: { taskId: "task-1" } } });
+  assert.equal(context.page.data.expandedTasks["task-1"], true);
+  assert.equal(JSON.stringify(context.page.data.room.tasks), before);
+  await context.page.load();
+  assert.equal(context.page.data.expandedTasks["task-1"], true);
+  context.page.toggleTaskDetails({ currentTarget: { dataset: { taskId: "task-1" } } });
+  assert.equal(context.page.data.expandedTasks["task-1"], false);
+  assert.equal(context.calls.length, 0);
+});

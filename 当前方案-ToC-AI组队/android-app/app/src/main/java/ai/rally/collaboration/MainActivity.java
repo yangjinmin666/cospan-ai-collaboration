@@ -37,7 +37,7 @@ public final class MainActivity extends Activity {
     private static final String APP_LINK_HOST = BuildConfig.RALLY_APP_HOST;
     private static final String HOME_URL =
             "https://" + ASSET_HOST + "/index.html?variant=A&source=android-app"
-                    + (BuildConfig.RALLY_DEMO_MODE ? "&workspace=1" : "");
+                    + (BuildConfig.RALLY_DEMO_MODE ? "&live=0&workspace=1" : "");
 
     private WebView webView;
     private Object predictiveBackCallback;
@@ -377,7 +377,7 @@ public final class MainActivity extends Activity {
         private String mimeTypeFor(String path) {
             if (path.endsWith(".html")) return "text/html";
             if (path.endsWith(".css")) return "text/css";
-            if (path.endsWith(".js")) return "application/javascript";
+            if (path.endsWith(".js") || path.endsWith(".mjs")) return "application/javascript";
             if (path.endsWith(".webmanifest")) return "application/manifest+json";
             if (path.endsWith(".json")) return "application/json";
             if (path.endsWith(".svg")) return "image/svg+xml";

@@ -1,0 +1,15 @@
+.conversation-page { box-sizing: border-box; min-height: 100vh; padding: 22rpx 28rpx calc(138rpx + env(safe-area-inset-bottom)); background: #f7f8fa; }
+.conversation-context { margin-bottom: 22rpx; padding: 20rpx 24rpx; border-left: 5rpx solid #347cf8; border-radius: 6rpx 22rpx 22rpx 6rpx; background: #eaf2ff; color: #607083; font-size: 22rpx; line-height: 1.5; }
+.conversation-context .surface-label { margin-bottom: 7rpx; }
+.message-list { box-sizing: border-box; height: calc(100vh - 310rpx - env(safe-area-inset-bottom)); padding: 8rpx 4rpx 30rpx; }
+.message { display: flex; flex-direction: column; align-items: flex-start; margin: 18rpx 0; }
+.message.is-mine { align-items: flex-end; }
+.message-bubble { max-width: 76%; padding: 20rpx 24rpx; border: 1rpx solid #dce3eb; border-radius: 24rpx 24rpx 24rpx 7rpx; background: #fff; color: #2c3a49; font-size: 26rpx; line-height: 1.55; box-shadow: 0 8rpx 20rpx rgba(31,48,70,.05); }
+.is-mine .message-bubble { border-color: #347cf8; border-radius: 24rpx 24rpx 7rpx 24rpx; background: #347cf8; color: #fff; }
+.message-time { margin: 7rpx 9rpx 0; color: #98a2ad; font-size: 18rpx; }
+.conversation-empty { display: flex; min-height: 480rpx; flex-direction: column; align-items: center; justify-content: center; padding: 40rpx; text-align: center; }
+.conversation-empty .meta { max-width: 470rpx; margin-top: 12rpx; }
+.composer { position: fixed; z-index: 10; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: minmax(0, 1fr) 116rpx; align-items: end; gap: 14rpx; padding: 18rpx 28rpx calc(18rpx + env(safe-area-inset-bottom)); border-top: 1rpx solid #e0e5eb; background: rgba(250,251,252,.97); }
+.composer-input { box-sizing: border-box; width: 100%; min-height: 78rpx; max-height: 180rpx; padding: 18rpx 22rpx; border: 1rpx solid #d5dee8; border-radius: 22rpx; background: #fff; color: #263442; font-size: 25rpx; line-height: 1.45; }
+.send-button { height: 78rpx; margin: 0; padding: 0; border-radius: 21rpx; background: #347cf8; color: #fff; font-size: 24rpx; font-weight: 750; line-height: 78rpx; }
+.send-button[disabled] { background: #dfe5ec; color: #9aa4ae; }

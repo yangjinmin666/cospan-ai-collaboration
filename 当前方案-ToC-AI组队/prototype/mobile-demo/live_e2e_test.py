@@ -1211,10 +1211,14 @@ def main():
             lin_page.get_by_text("现场协作实验", exact=True).wait_for(timeout=8000)
 
             zhou_page.locator('.app-nav [data-tab="collaboration"]').click()
-            zhou_page.get_by_role("button", name="生成启动计划").wait_for(timeout=8000)
-            zhou_page.get_by_role("button", name="生成启动计划").click()
-            zhou_page.get_by_text("人机协作启动计划", exact=True).wait_for(timeout=8000)
-            lin_page.get_by_text("人机协作启动计划", exact=True).wait_for(timeout=8000)
+            zhou_page.get_by_role("button", name="生成分工建议").wait_for(timeout=8000)
+            zhou_page.get_by_role("button", name="生成分工建议").click()
+            zhou_page.locator(".workspace-mobile-content").get_by_text("共同计划", exact=True).wait_for(timeout=8000)
+            lin_page.locator(".workspace-mobile-content").get_by_text("共同计划", exact=True).wait_for(timeout=8000)
+            task_context = lin_page.locator(".workspace-mobile-content .mobile-task-details").first
+            assert task_context.get_attribute("open") is None
+            task_context.locator("summary").click()
+            assert task_context.locator("small").is_visible()
             lin_page.get_by_role("button", name="我来负责").first.click()
             lin_page.get_by_text("任务已认领", exact=True).wait_for(timeout=5000)
 
@@ -1242,17 +1246,27 @@ def main():
             lin_page.get_by_text("现场协作实验", exact=True).wait_for(timeout=8000)
             assert lin_page.locator(".live-login-card").count() == 0
 
-            zhou_page.set_viewport_size({"width": 1440, "height": 900})
-            zhou_page.goto(
+            # A real desktop session reuses the same account state. Resizing a
+            # touch-emulated phone must not silently replace its mobile shell.
+            desktop_context = browser.new_context(
+                viewport={"width": 1440, "height": 900},
+                storage_state=zhou_context.storage_state(),
+            )
+            desktop_page = desktop_context.new_page()
+            desktop_page.on(
+                "pageerror", lambda error: errors.append(f"desktop:{error}")
+            )
+            desktop_page.goto(
                 f"{frontend_url}/?variant=A&workspace=1&view=collaboration&live=1"
                 f"&apiBase={urllib.parse.quote(backend_url, safe=':/')}",
             )
-            desktop_workspace = zhou_page.locator(
+            desktop_workspace = desktop_page.locator(
                 f'.live-workspace-view[data-live-project-id="{project_id}"]'
             )
             desktop_workspace.wait_for(timeout=8000)
             desktop_grid = desktop_workspace.locator(".workspace-desktop-grid")
             assert desktop_grid.is_visible()
+            desktop_grid.get_by_role("button", name="团队成员", exact=True).click()
             assert desktop_grid.get_by_text("周闻", exact=True).first.is_visible()
             assert desktop_grid.get_by_text("林澈", exact=True).first.is_visible()
             private_chat = desktop_grid.get_by_role(
@@ -1260,9 +1274,10 @@ def main():
             )
             assert private_chat.is_visible()
             private_chat.click()
-            zhou_page.get_by_label("与 林澈 的对话", exact=True).wait_for(timeout=8000)
-            zhou_page.get_by_role("button", name="返回连接列表").click()
+            desktop_page.get_by_label("与 林澈 的对话", exact=True).wait_for(timeout=8000)
+            desktop_page.get_by_role("button", name="返回连接列表").click()
             desktop_grid.wait_for(timeout=8000)
+            desktop_grid.get_by_role("button", name="项目任务", exact=True).click()
             assert desktop_grid.locator("[data-live-task-id]").count() == len(
                 room["tasks"]
             )
@@ -1276,7 +1291,7 @@ def main():
                 f'[data-live-task-id="{unowned_task["id"]}"] '
                 '[data-action="live-task-action"][data-resolution="claim"]'
             ).click()
-            zhou_page.get_by_text("任务已认领", exact=True).wait_for(timeout=5000)
+            desktop_page.get_by_text("任务已认领", exact=True).wait_for(timeout=5000)
             task_card = desktop_grid.locator(
                 f'[data-live-task-id="{unowned_task["id"]}"]'
             )
@@ -1285,7 +1300,7 @@ def main():
             assert task_card.get_by_role("button", name="开始任务").count() == 0
 
             desktop_grid.get_by_role("button", name="确认当前计划").click()
-            zhou_page.get_by_text("已记录你的确认，等待其他成员", exact=True).wait_for(
+            desktop_page.get_by_text("已记录你的确认，等待其他成员", exact=True).wait_for(
                 timeout=5000
             )
             desktop_grid.get_by_text("1 / 2 位成员已确认", exact=True).wait_for(
@@ -1316,7 +1331,7 @@ def main():
             )
 
             lin_page.locator(".workspace-mobile-content").get_by_role(
-                "button", name="确认当前计划"
+                "button", name="确认分工"
             ).click()
             lin_page.locator(
                 '.toast:has-text("全员已确认当前计划")'
@@ -1335,7 +1350,7 @@ def main():
             )
             task_card.get_by_role("button", name="开始任务").wait_for(timeout=8000)
 
-            zhou_page.reload()
+            desktop_page.reload()
             desktop_workspace.wait_for(timeout=8000)
             refreshed_desktop_grid = desktop_workspace.locator(
                 ".workspace-desktop-grid"
@@ -1352,6 +1367,7 @@ def main():
                 "button", name="开始任务"
             ).is_visible()
 
+            desktop_context.close()
             zhou_context.close()
             lin_context.close()
             browser.close()

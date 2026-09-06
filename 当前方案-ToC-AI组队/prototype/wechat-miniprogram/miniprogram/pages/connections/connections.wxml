@@ -1,0 +1,65 @@
+<view class="page connections-page" style="padding-top: {{navigationTop}}px;">
+  <view class="connections-head">
+    <button class="event-trigger icon-button" bindtap="openEventSelector" aria-label="选择当前范围，当前为 {{scopeLabel}}">
+      <image class="ui-icon" src="/assets/ui-event.svg" mode="aspectFit" />
+    </button>
+    <view class="connections-title">连接</view>
+  </view>
+
+  <view class="connection-hero">
+    <view class="connection-summary"><strong>{{connected.length}}</strong><text>位已建联</text><em wx:if="{{incoming.length}}">{{incoming.length}} 个待你回应</em></view>
+    <view>碰卡来源、认识原因和共同项目都会保存在这里。</view>
+  </view>
+
+  <view class="connection-filters">
+    <button class="{{filter === 'all' ? 'active' : ''}}" data-filter="all" bindtap="selectFilter">全部</button>
+    <button class="{{filter === 'pending' ? 'active' : ''}}" data-filter="pending" bindtap="selectFilter">待回应</button>
+    <button class="{{filter === 'connected' ? 'active' : ''}}" data-filter="connected" bindtap="selectFilter">已建联</button>
+  </view>
+
+  <block wx:if="{{visibleIncoming.length}}">
+    <view class="section-caption"><text>等待你回应</text><strong>{{incoming.length}}</strong></view>
+    <view class="connection-card pending-card" wx:for="{{visibleIncoming}}" wx:key="id">
+      <view class="connection-card-head">
+        <view class="memoji-avatar connection-avatar {{item.counterpart.avatarClass}}"><image class="memoji-sheet" src="/assets/default-memoji-grid.jpg" mode="scaleToFill" /></view>
+        <view class="connection-main"><view class="connection-name">{{item.counterpart.display_name}}</view><view class="connection-role">{{item.counterpart.role || '现场参与者'}}</view></view>
+        <view class="source-chip">想认识你</view>
+      </view>
+      <view class="pending-message">“{{item.message || '想和你聊聊当前的协作方向'}}”</view>
+      <view class="inline-actions"><button class="accept-action" data-request-id="{{item.id}}" data-action="accept" bindtap="resolveRequest">接受认识</button><button class="plain-action" data-request-id="{{item.id}}" data-action="reject" bindtap="resolveRequest">暂不连接</button></view>
+    </view>
+  </block>
+
+  <block wx:if="{{visibleConnected.length}}">
+    <view class="connection-card connected-card" wx:for="{{visibleConnected}}" wx:key="connection_id">
+      <view class="connection-card-head">
+        <view class="memoji-avatar connection-avatar {{item.counterpart.avatarClass}}"><image class="memoji-sheet" src="/assets/default-memoji-grid.jpg" mode="scaleToFill" /></view>
+        <view class="connection-main"><view class="connection-name">{{item.counterpart.display_name}}</view><view class="connection-role">{{item.counterpart.role || '现场参与者'}}</view></view>
+        <view class="source-chip">{{item.sourceLabel}}</view>
+      </view>
+      <view class="connection-context"><text>认识于</text><strong>{{eventName}}</strong><small>{{item.contextDetail}}</small></view>
+      <button class="conversation-entry" data-connection-id="{{item.connection_id}}" bindtap="openConversation">
+        <view><small>最近消息</small><strong>{{item.lastMessageText || '已经建联，可以从一句具体的话开始'}}</strong></view>
+        <view class="conversation-action"><b wx:if="{{item.unread_count}}">{{item.unread_count}}</b><text wx:else>继续对话</text><i>→</i></view>
+      </button>
+      <button class="project-entry" catchtap="goCollaboration">查看共同项目</button>
+    </view>
+  </block>
+
+  <block wx:if="{{visibleOutgoing.length}}">
+    <view class="section-caption"><text>等待对方</text><strong>{{outgoing.length}}</strong></view>
+    <view class="connection-row" wx:for="{{visibleOutgoing}}" wx:key="id">
+      <view class="memoji-avatar connection-avatar small {{item.counterpart.avatarClass}}"><image class="memoji-sheet" src="/assets/default-memoji-grid.jpg" mode="scaleToFill" /></view>
+      <view class="connection-main"><view class="connection-name">{{item.counterpart.display_name}}</view><view class="connection-role">认识请求已送达</view></view>
+      <button class="cancel-action" data-request-id="{{item.id}}" data-action="cancel" catchtap="resolveRequest">撤回</button>
+    </view>
+  </block>
+
+  <view class="connections-empty" wx:if="{{!loading && !visibleIncoming.length && !visibleConnected.length && !visibleOutgoing.length}}">
+    <view class="empty-symbol"><view></view><view></view></view>
+    <view class="card-title">{{filter === 'pending' ? '没有待回应的招呼' : filter === 'connected' ? '还没有正式连接' : '连接从双方确认开始'}}</view>
+    <view class="meta">{{filter === 'pending' ? '向感兴趣的人表达想认识后，等待中的记录会出现在这里。' : '去发现页查看推荐，向真正互补的人发出认识请求。'}}</view>
+    <button class="primary-button" bindtap="goDiscover">去发现</button>
+  </view>
+</view>
+<scope-selector visible="{{scopeOpen}}" scope="{{discoveryScope}}" event-id="{{scopeEventId}}" events="{{eventChoices}}" bind:close="closeScopeSelector" bind:selectscope="selectDiscoveryScope" bind:managevisibility="manageScopeVisibility" />

@@ -9,49 +9,51 @@
     <text selectable="{{true}}">{{actionError}}</text>
   </view>
   <block wx:if="{{room}}">
-  <view class="hero">
-    <view class="eyebrow">COSPAN SPACE</view>
-    <view class="title">{{room.project.title}}</view>
-    <view class="subtitle">{{room.project.summary}}</view>
+  <view class="room-hero">
+    <view class="room-topline"><view class="live-state">{{room.project.status === 'ACTIVE' ? '进行中' : room.project.status === 'ARCHIVED' ? '已归档' : '组队中'}}</view><text class="meta">{{room.members.length}} 位成员</text></view>
+    <view class="room-title">{{room.project.title}}</view>
+    <button class="room-summary-toggle" bindtap="toggleProjectSummary">{{showProjectSummary ? '收起项目介绍' : '项目介绍'}}</button>
+    <view class="room-summary" wx:if="{{showProjectSummary}}">{{room.project.summary || '暂未填写项目介绍'}}</view>
   </view>
 
-  <view class="card">
+  <view class="card plan-card">
     <view class="status-line">
       <view class="card-title">共同计划</view>
-      <view class="plan-state">{{room.starter_pack ? room.starter_pack.status : '尚未生成'}}</view>
+      <view class="plan-state">{{room.starter_pack ? room.starter_pack.status === 'CONFIRMED' ? '已确认' : '待确认' : '待生成'}}</view>
     </view>
-    <view class="meta">{{room.members.length}} 位成员·{{room.confirmation_progress.confirmed}}/{{room.confirmation_progress.required}} 人已确认</view>
+    <view class="confirmation-progress">
+      <view><text>启动确认</text><text class="progress-count">{{room.confirmation_progress.confirmed}} / {{room.confirmation_progress.required}}</text></view>
+      <view class="progress-track"><view class="progress-value" style="width: {{room.progressPercent}}%;"></view></view>
+    </view>
     <view class="meta plan-source" wx:if="{{room.planSourceLabel}}">{{room.planSourceLabel}}</view>
-    <view class="notice" wx:if="{{room.starter_pack}}">
-      Agent 建议不会自动派单。每项任务需要成员亲自领取，全员确认后才能开始执行。
-    </view>
+    <view class="plan-consent-note" wx:if="{{room.canConfirmPlan}}">查看下方分工后确认；全员确认才启动。</view>
     <button wx:if="{{!room.starter_pack}}" class="primary-button" disabled="{{working || loading || loadError}}" loading="{{working}}" bindtap="generatePlan">
-      生成起步任务建议
+      生成分工建议
     </button>
     <button wx:if="{{room.canConfirmPlan}}" class="secondary-button" disabled="{{working || loading || loadError}}" loading="{{working}}" bindtap="confirmPlan">
-      我确认这份共同计划
+      确认分工
     </button>
   </view>
 
-  <view class="section-title">任务编排</view>
+  <view class="task-section-head"><view class="section-title">任务</view><view class="task-count">{{room.tasks.length}}</view></view>
   <view class="card task-card" wx:for="{{room.tasks}}" wx:key="id">
     <view class="status-line">
-      <view class="task-number">0{{index + 1}}</view>
-      <view class="task-mode">{{item.mode}}</view>
+      <view class="card-title task-title">{{item.title}}</view>
+      <view class="task-status">{{item.statusLabel}}</view>
     </view>
-    <view class="card-title task-title">{{item.title}}</view>
-    <view class="task-copy">{{item.objective}}</view>
-    <view class="acceptance">验收：{{item.acceptance_criteria}}</view>
     <view class="status-line owner-line">
       <view class="meta">负责人：{{item.ownerName}}</view>
-      <view class="task-status">{{item.status}}</view>
+      <button class="task-disclosure" data-task-id="{{item.id}}" bindtap="toggleTaskDetails">{{expandedTasks[item.id] ? '收起' : item.agentRuns.length ? '详情 · 简报' : '查看详情'}}</button>
     </view>
     <button wx:if="{{item.canClaim}}" class="primary-button" disabled="{{working || loading || loadError}}" data-task-id="{{item.id}}" bindtap="claimTask">{{item.claimLabel}}</button>
     <button wx:if="{{item.canStart}}" class="secondary-button" disabled="{{working || loading || loadError}}" data-task-id="{{item.id}}" data-action="start" bindtap="moveTask">开始执行</button>
     <button wx:if="{{item.canComplete}}" class="secondary-button" disabled="{{working || loading || loadError}}" data-task-id="{{item.id}}" data-action="complete" bindtap="moveTask">标记完成</button>
+    <block wx:if="{{expandedTasks[item.id]}}">
+    <view class="task-copy">{{item.objective}}</view>
+    <view class="acceptance"><text>验收标准</text><view>{{item.acceptance_criteria}}</view></view>
     <view class="agent-section" wx:if="{{item.mode === 'HUMAN_AGENT' || item.agentRuns.length}}">
       <view class="agent-heading">Agent 调研简报</view>
-      <view class="meta">AI 提供草稿，负责人核对并决定是否采纳。采纳简报不等于完成任务。</view>
+      <view class="meta">采纳简报不等于完成任务，请先核对内容。</view>
       <view class="meta" wx:if="{{!item.canRunAgent && !item.agentRuns.length}}">{{item.agentHint}}</view>
       <button wx:if="{{item.canRunAgent}}" class="secondary-button agent-button" data-task-id="{{item.id}}" disabled="{{working || loading || loadError}}" loading="{{agentTaskId === item.id}}" bindtap="requestAgent">{{agentTaskId === item.id ? '正在生成简报' : '请 Agent 生成调研简报'}}</button>
       <view class="meta" wx:if="{{agentTaskId === item.id}}">通常需要数十秒，请勿重复提交。</view>
@@ -80,8 +82,9 @@
         <button wx:if="{{run.canCancel}}" class="secondary-button agent-button" disabled="{{working || loading || loadError}}" data-run-id="{{run.id}}" bindtap="cancelAgent">取消这次生成</button>
       </view>
     </view>
+    </block>
   </view>
-  <view class="meta room-footer">显示最近 10 次 Agent 记录。AI 结果可能有误，请核对关键事实。</view>
+  <view class="meta room-footer">详细编排和专业执行请在电脑端继续。</view>
   <button class="secondary-button agent-button" disabled="{{working || loading}}" loading="{{loading}}" bindtap="load">刷新空间进度</button>
   </block>
 </view>

@@ -1,1 +1,4 @@
-{ "navigationBarTitleText": "COSPAN｜合拍" }
+{
+  "disableScroll": true,
+  "navigationStyle": "custom"
+}

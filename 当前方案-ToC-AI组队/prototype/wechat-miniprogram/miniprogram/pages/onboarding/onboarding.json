@@ -1,1 +1,4 @@
-{ "navigationBarTitleText": "协作资料" }
+{
+  "navigationStyle": "custom",
+  "backgroundColor": "#ffffff"
+}

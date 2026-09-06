@@ -1,5 +1,6 @@
 const { ACCESS_TOKEN_KEY } = require("../../utils/api.js");
 const { buildProfileBlocks } = require("../../utils/profile-presenter.js");
+const { scopeData, scopePageMethods, syncDiscoveryScope } = require("../../utils/discovery-scope.js");
 
 const DEFAULT_PUBLIC_PROFILE_FIELDS = Object.freeze([
   "display_name",
@@ -34,14 +35,17 @@ function confirmation(options) {
 }
 
 Page({
+  ...scopePageMethods("profile", getApp, wx),
   data: {
+    ...scopeData,
     user: null,
     profile: null,
     loading: true,
     loadError: "",
     avatarClass: "memoji-5",
     eventName: FALLBACK_EVENT_NAME,
-    navigationBottom: 60,
+    eventChoices: [],
+    navigationTop: 44,
     visible: false,
     visibilityTitle: "已暂停展示",
     visibilityCopy: "当前不会出现在推荐、附近和展会名册中。",
@@ -63,6 +67,7 @@ Page({
   },
 
   onShow() {
+    syncDiscoveryScope(this, "profile", getApp());
     const tabBar = this.getTabBar?.();
     if (tabBar) tabBar.setData({ selected: 3 });
     this.load();
@@ -72,17 +77,20 @@ Page({
     try {
       const menu = wx.getMenuButtonBoundingClientRect?.();
       const windowInfo = wx.getWindowInfo?.() || wx.getSystemInfoSync?.() || {};
-      const navigationBottom = menu?.bottom
-        ? menu.bottom + 8
-        : (windowInfo.statusBarHeight || 24) + 52;
-      this.setData({ navigationBottom });
+      const navigationTop = menu?.top
+        ? menu.top
+        : (windowInfo.statusBarHeight || 24) + 6;
+      this.setData({ navigationTop });
     } catch {
-      this.setData({ navigationBottom: 60 });
+      this.setData({ navigationTop: 44 });
     }
   },
 
   async load() {
     const app = getApp();
+    const eventId = app.globalData.eventId;
+    const loadVersion = (this.loadVersion || 0) + 1;
+    this.loadVersion = loadVersion;
     this.setData({ loading: true, loadError: "" });
     try {
       const [me, eventsPayload, authMethods] = await Promise.all([
@@ -90,13 +98,14 @@ Page({
         app.globalData.api.get("/api/events"),
         app.globalData.api.get("/api/me/auth-methods").catch(() => null),
       ]);
+      if (eventId !== app.globalData.eventId || loadVersion !== this.loadVersion) return;
       const profile = (me.profiles || []).find(
-        (item) => item.event_id === app.globalData.eventId,
+        (item) => item.event_id === eventId,
       ) || null;
       const platformLinks = me.platform_links || [];
       const links = new Map(platformLinks.map((item) => [item.platform, item.url]));
       const activeEvent = (eventsPayload.events || []).find(
-        (item) => item.id === app.globalData.eventId,
+        (item) => item.id === eventId,
       );
       const visible = profile?.visibility?.state === "VISIBLE";
       const publicBlocks = buildProfileBlocks(profile, platformLinks);
@@ -110,6 +119,7 @@ Page({
           ? requestedAvatar
           : "memoji-5",
         eventName: activeEvent?.name || FALLBACK_EVENT_NAME,
+        eventChoices: eventsPayload.events || [],
         visible,
         ...visibilityPresentation(visible),
         publicBlocks,
@@ -124,11 +134,12 @@ Page({
           xiaohongshu: links.get("xiaohongshu") || "",
         },
       });
+      syncDiscoveryScope(this, "profile", getApp());
     } catch (error) {
       this.setData({ loadError: error.message || "加载失败" });
       wx.showToast({ title: error.message || "加载失败", icon: "none" });
     } finally {
-      this.setData({ loading: false });
+      if (loadVersion === this.loadVersion) this.setData({ loading: false });
     }
   },
 
@@ -136,16 +147,23 @@ Page({
     this.load();
   },
 
+  onHide() {
+    this.closeSettings();
+    this.closeScopeSelector();
+  },
+
   openSettings() {
     this.setData({ showSettings: true });
+    this.getTabBar?.()?.setData({ overlayOpen: true });
   },
 
   closeSettings() {
     this.setData({ showSettings: false });
+    this.getTabBar?.()?.setData({ overlayOpen: false });
   },
 
   openPlatformSettings() {
-    this.setData({ showSettings: false });
+    this.closeSettings();
     wx.pageScrollTo({ selector: "#profile-platform-settings", duration: 280 });
   },
 
@@ -188,7 +206,7 @@ Page({
   },
 
   editProfile() {
-    this.setData({ showSettings: false });
+    this.closeSettings();
     wx.navigateTo({ url: "/pages/onboarding/onboarding" });
   },
 
@@ -199,7 +217,7 @@ Page({
       return this.openPlatformSettings();
     }
     if (setting === "device") {
-      this.setData({ showSettings: false });
+      this.closeSettings();
       wx.pageScrollTo({ selector: "#profile-device-preview", duration: 280 });
       return undefined;
     }

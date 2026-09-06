@@ -1,55 +1,189 @@
-<view class="page">
-  <view class="hero">
-    <view class="eyebrow">{{eventName}}</view>
-    <view class="title">现场找搭档</view>
-    <view class="subtitle">COSPAN 说清互补的理由，是否认识由你们双方决定。</view>
+<view class="page discovery-page {{mode === 'directory' ? 'is-directory' : ''}}" style="padding-top: {{navigationTop}}px;">
+  <view class="app-header">
+    <button class="filter-trigger icon-button" bindtap="openFilters" aria-label="筛选推荐">
+      <image class="ui-icon" src="/assets/ui-filter.svg" mode="aspectFit" />
+      <text class="filter-count" wx:if="{{filterCount}}">{{filterCount}}</text>
+    </button>
+    <button class="event-trigger icon-button" bindtap="openEventSelector" aria-label="选择当前范围，当前为 {{scopeLabel}}">
+      <image class="ui-icon" src="/assets/ui-event.svg" mode="aspectFit" />
+    </button>
   </view>
 
-  <view class="card switch-row">
-    <view>
-      <view class="card-title">附近模式</view>
-      <view class="meta">前台短时定位，不展示精确坐标</view>
+  <view class="discovery-tabs">
+    <button wx:if="{{discoveryScope !== 'nearby'}}" class="discovery-tab {{mode === 'recommend' ? 'active' : ''}}" data-mode="recommend" bindtap="selectMode">推荐</button>
+    <button class="discovery-tab {{mode === 'nearby' ? 'active' : ''}}" data-mode="nearby" bindtap="selectMode">附近</button>
+    <button wx:if="{{discoveryScope !== 'nearby'}}" class="discovery-tab {{mode === 'directory' ? 'active' : ''}}" data-mode="directory" bindtap="selectMode">名册</button>
+  </view>
+
+  <block wx:if="{{mode === 'recommend'}}">
+    <view class="recommendation-intro">
+      <view class="recommendation-intro-copy"><text class="recommendation-intro-label">为你的项目推荐</text><strong class="recommendation-intro-title">共同发起者 × 1</strong></view>
+      <text class="recommendation-count">{{people.length ? currentIndex + 1 : 0}} / {{people.length}}</text>
     </view>
-    <switch checked="{{nearbyEnabled}}" color="#282b31" bindchange="toggleNearby" />
-  </view>
 
-  <block wx:if="{{nearbyEnabled}}">
-    <view class="section-title">真实在附近</view>
-    <view class="card" wx:for="{{nearby}}" wx:key="user_id">
-      <view class="status-line">
-        <view class="card-title">{{item.display_name}}</view>
-        <view class="distance">{{item.distanceLabel}}</view>
+    <view class="recommendation-deck" wx:if="{{currentPerson}}">
+      <view class="recommendation-card-next" wx:if="{{nextPerson}}" aria-hidden="true">
+        <view class="memoji-avatar next-person-avatar {{nextPerson.avatarClass}}"><image class="memoji-sheet" src="/assets/default-memoji-grid.jpg" mode="scaleToFill" /></view>
       </view>
-      <view class="meta">{{item.role}}</view>
+      <view
+      class="recommendation-card recommendation-card-active {{cardDragging ? 'is-dragging' : ''}}"
+      style="transform: {{cardTransform}}; opacity: {{cardOpacity}}; transition: {{cardTransition}};"
+      bindtap="toggleDetails"
+      bindtouchstart="startCardSwipe"
+      bindtouchmove="moveCardSwipe"
+      bindtouchend="endCardSwipe"
+      bindtouchcancel="cancelCardSwipe"
+    >
+      <view class="swipe-verdict verdict-right" style="opacity: {{swipeDirection === 'right' ? swipeProgress : 0}};">想认识</view>
+      <view class="swipe-verdict verdict-left" style="opacity: {{swipeDirection === 'left' ? swipeProgress : 0}};">暂不看</view>
+      <scroll-view class="recommendation-card-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+        <view class="recommendation-card-content">
+          <view class="recommendation-topline">
+            <view class="availability"><i class="status-dot"></i>{{currentPerson.status}}</view>
+            <view class="proximity">{{currentPerson.proximity || currentPerson.distanceLabel || '现场'}}</view>
+          </view>
+          <view class="person-head">
+            <view class="memoji-avatar person-avatar {{currentPerson.avatarClass}}"><image class="memoji-sheet" src="/assets/default-memoji-grid.jpg" mode="scaleToFill" /></view>
+            <view><view class="person-name">{{currentPerson.display_name}}</view><view class="person-role">{{currentPerson.role}}</view></view>
+          </view>
+          <view class="tag-row"><view class="tag" wx:for="{{currentPerson.skills}}" wx:key="*this" wx:for-item="skill">{{skill}}</view></view>
+          <view class="proof-block"><text class="proof-label">做过什么</text><strong class="proof-value">{{currentPerson.evidenceText}}</strong></view>
+          <view class="reason" wx:if="{{currentPerson.recommendation.reasons.length}}"><text class="reason-label">为什么值得聊</text><view class="reason-copy">{{currentPerson.recommendation.reasons[0]}}</view></view>
+          <view class="card-detail-cue"><text class="card-detail-label">点击查看完整信息</text><strong class="card-detail-fit">互补推荐</strong></view>
+        </view>
+      </scroll-view>
+      </view>
     </view>
-    <view class="empty" wx:if="{{!nearby.length}}">还没有其他开启附近模式的人</view>
+
+    <view class="empty discovery-empty" wx:if="{{showEmptyPeople}}">
+      <view class="empty-symbol">⌁</view><view class="card-title">当前筛选下暂无推荐结果</view><view class="meta">COSPAN 不会自动放宽筛选条件。</view><button class="primary-button" bindtap="openFilters">调整筛选</button>
+    </view>
+
+    <view class="recommendation-actions" wx:if="{{currentPerson}}">
+      <button class="deck-action" catchtap="nextPerson" aria-label="暂不看"><view class="deck-action-circle"><image class="ui-icon" src="/assets/ui-close.svg" mode="aspectFit" /></view><small class="deck-action-label">暂不看</small></button>
+      <button class="deck-action" catchtap="toggleDetails" aria-label="看详情"><view class="deck-action-circle"><image class="ui-icon" src="/assets/ui-details.svg" mode="aspectFit" /></view><small class="deck-action-label">看详情</small></button>
+      <button class="deck-action action-primary" data-user-id="{{currentPerson.user_id}}" catchtap="requestConnection" aria-label="想认识"><view class="deck-action-circle"><image class="ui-icon" src="/assets/ui-wave.svg" mode="aspectFit" /></view><small class="deck-action-label">想认识</small></button>
+    </view>
+    <view class="recommendation-progress" wx:if="{{people.length}}"><i wx:for="{{people}}" wx:key="user_id" class="recommendation-progress-dot {{index === currentIndex ? 'active' : ''}}"></i></view>
   </block>
 
-  <block wx:if="{{incoming.length}}">
-    <view class="section-title">想认识你</view>
-    <view class="card" wx:for="{{incoming}}" wx:key="id">
-      <view class="card-title">{{item.counterpart.display_name}}</view>
-      <view class="meta">{{item.counterpart.role}}·{{item.message || '希望在现场认识你'}}</view>
-      <button class="primary-button" data-request-id="{{item.id}}" bindtap="acceptConnection">{{item.view.label}}</button>
+  <block wx:if="{{mode === 'nearby'}}">
+    <view class="mobile-discovery-note">
+      <view class="mobile-discovery-copy"><text class="mobile-discovery-state">{{nearbyRequesting ? '○ 正在获取真实定位' : nearbyError ? '○ 附近暂不可用' : nearbyEnabled ? '● 真实定位已连接' : '○ 手机前台发现'}}</text><text class="mobile-discovery-caption">{{nearbyError || '仅在打开本页时更新，离开后停止'}}</text></view>
+      <switch class="nearby-switch" checked="{{nearbyEnabled}}" disabled="{{profileIncomplete || nearbyRequesting}}" color="#347cf8" bindchange="toggleNearby" />
     </view>
+    <view class="nearby-copy">
+      <view class="status-pill {{nearbyEnabled ? '' : 'status-paused'}}"><i class="status-dot"></i>{{nearbyEnabled ? '附近可见' : '尚未开启附近'}}</view>
+      <view class="nearby-title">{{nearbyEnabled ? '附近有 ' + nearby.length + ' 位协作者' : '发现身边的协作者'}}</view>
+      <view class="nearby-subtitle">{{nearbyEnabled ? '基于真实定位发现本场已授权成员。点击头像，看看为什么值得聊。' : '开启定位后，发现本场活动中同样开启附近可见的人。'}}</view>
+    </view>
+
+    <view class="radar-field {{nearbyEnabled ? 'is-live' : 'is-paused'}}">
+      <view class="radar-sweep" wx:if="{{nearbyEnabled}}"></view>
+      <view class="radar-glow"></view>
+      <view class="memoji-avatar radar-self {{userAvatarClass}}"><image class="memoji-sheet" src="/assets/default-memoji-grid.jpg" mode="scaleToFill" /></view>
+      <button class="radar-person {{nearbyFocus.user_id === item.user_id ? 'active' : ''}}" style="{{item.radarStyle}}" wx:for="{{nearby}}" wx:key="user_id" data-index="{{index}}" bindtap="selectNearbyPerson">
+        <view class="memoji-avatar radar-avatar {{item.avatarClass}}"><image class="memoji-sheet" src="/assets/default-memoji-grid.jpg" mode="scaleToFill" /></view><text class="radar-person-name">{{item.display_name}}</text>
+      </button>
+    </view>
+
+    <view class="radar-permission" wx:if="{{!nearbyEnabled}}">
+      <strong class="radar-permission-title">开启后发现身边主动可见的人</strong>
+      <text class="radar-permission-copy">仅展示大致距离，不公开精确位置。</text>
+      <button class="radar-permission-action" loading="{{nearbyRequesting}}" disabled="{{nearbyRequesting}}" bindtap="toggleNearbyFromButton">{{nearbyRequesting ? '正在定位' : nearbyError ? '重新开启附近' : '开启附近发现'}}</button>
+    </view>
+
+    <view class="nearby-focus-card" wx:if="{{nearbyEnabled && nearbyFocus}}">
+      <view class="nearby-focus-head">
+        <view class="memoji-avatar focus-avatar {{nearbyFocus.avatarClass}}"><image class="memoji-sheet" src="/assets/default-memoji-grid.jpg" mode="scaleToFill" /></view>
+        <view class="nearby-focus-copy"><strong class="nearby-focus-name">{{nearbyFocus.display_name}}</strong><text class="nearby-focus-meta">{{nearbyFocus.role}} · {{nearbyFocus.distanceLabel}}</text></view>
+        <view class="signal-bars"><i class="signal-bar signal-bar-short"></i><i class="signal-bar signal-bar-medium"></i><i class="signal-bar signal-bar-tall"></i></view>
+      </view>
+      <view class="nearby-focus-reason">{{nearbyFocus.recommendation.reasons[0]}}</view>
+      <view class="nearby-focus-actions"><button class="nearby-focus-action" bindtap="nextNearbyPerson">换一个</button><button class="nearby-focus-action primary" bindtap="openNearbyDetails">查看为什么</button></view>
+    </view>
+    <view class="nearby-focus-card nearby-empty" wx:if="{{nearbyEnabled && !nearby.length}}">当前范围和筛选条件下，暂未发现其他开启附近可见的人。离开本页会停止定位。</view>
   </block>
 
-  <view class="section-title">今天值得认识</view>
-  <view class="card person-card" wx:for="{{people}}" wx:key="user_id">
-    <view class="status-line">
-      <view>
-        <view class="card-title">{{item.display_name}}</view>
-        <view class="meta">{{item.role}}·{{item.status}}</view>
+  <block wx:if="{{mode === 'directory'}}">
+    <view class="directory-summary"><view class="directory-summary-head"><view class="directory-title">展会名册</view><text class="directory-count">{{people.length}} 人</text></view><view class="directory-caption">仅展示已授权加入本场展会的成员</view></view>
+    <view class="ledger-list">
+    <view class="ledger-person" wx:for="{{people}}" wx:key="user_id" data-user-id="{{item.user_id}}" bindtap="openDirectoryPerson" role="button" aria-label="查看 {{item.display_name}} 的资料">
+      <view class="memoji-avatar ledger-avatar {{item.avatarClass}}"><image class="memoji-sheet" src="/assets/default-memoji-grid.jpg" mode="scaleToFill" /></view>
+      <view class="ledger-main"><view class="ledger-name"><text class="ledger-display-name">{{item.display_name}}</text><text class="ledger-status">{{item.status}}</text></view><view class="ledger-skills">{{item.skillsText}}</view><view class="ledger-reason">{{item.recommendation.reasons[0]}}</view></view>
+      <view class="ledger-fit" wx:if="{{item.recommendation.reasons.length}}">互补</view>
+    </view>
+    </view>
+    <button class="ledger-scan" bindtap="load" loading="{{loading}}" disabled="{{loading}}">↻ 刷新展会名册</button>
+    <view class="empty discovery-empty" wx:if="{{showEmptyPeople}}"><view class="card-title">当前筛选下暂无名册结果</view><button class="primary-button" bindtap="openFilters">调整筛选</button></view>
+  </block>
+
+  <view class="sheet-overlay" wx:if="{{showDetails}}" catchtouchmove="preventFilterBackgroundScroll">
+    <view class="sheet-backdrop" bindtap="closePersonDetails"></view>
+    <view class="person-sheet {{detailExpanded ? 'is-expanded' : 'is-preview'}}" style="{{detailExpanded ? 'max-height: calc(100vh - ' + navigationTop + 'px);' : ''}}">
+      <view class="person-sheet-drag-zone" data-handle="{{true}}" bindtouchstart="startDetailGesture" bindtouchend="endDetailGesture">
+        <view class="sheet-handle"></view>
+        <view wx:if="{{detailExpanded}}" class="person-sheet-nav"><text>个人资料</text><text class="person-nav-hint">顶部下滑收起</text></view>
+        <button class="person-close" bindtap="closePersonDetails" aria-label="关闭人物详情"><image class="ui-icon" src="/assets/ui-close.svg" mode="aspectFit" /></button>
       </view>
+      <scroll-view class="person-sheet-scroll" scroll-y="{{detailExpanded}}" enhanced="{{true}}" show-scrollbar="{{false}}" bindtouchstart="startDetailGesture" bindtouchend="endDetailGesture">
+        <view class="person-sheet-content">
+          <view class="person-sheet-head">
+            <view class="memoji-avatar detail-avatar {{currentPerson.avatarClass}}"><image class="memoji-sheet" src="/assets/default-memoji-grid.jpg" mode="scaleToFill" /></view>
+            <view class="person-sheet-identity"><text class="detail-status">{{currentPerson.status || '状态未公开'}}</text><view class="detail-name">{{currentPerson.display_name}}</view><view class="detail-role">{{currentPerson.role || '职能未公开'}} · {{currentPerson.distanceLabel || detailProfile.location}}</view></view>
+            <view class="detail-fit"><text>{{detailProfile.fit}}</text><text class="detail-fit-note">{{detailProfile.fitDetail}}</text></view>
+          </view>
+          <view class="detail-skill-line"><text wx:for="{{currentPerson.skills}}" wx:key="*this">{{item}}</text></view>
+          <view class="participant-bio"><view class="bio-head"><text>本人简介</text><text class="bio-original">原文</text></view><text class="bio-copy">{{detailProfile.bio}}</text></view>
+          <button class="person-expand-cue" bindtap="expandPersonDetails"><view><text class="expand-caption">{{detailExpanded ? '完整资料' : '继续上滑'}}</text><view class="expand-title">{{detailExpanded ? '过往项目与协作信息' : '查看过往项目与全部资料'}}</view></view><image wx:if="{{!detailExpanded}}" class="ui-icon expand-arrow" src="/assets/ui-back.svg" mode="aspectFit" /></button>
+          <view wx:if="{{detailExpanded}}" class="person-full-profile">
+            <view class="detail-facts"><view><text class="detail-label">所在范围</text><text class="detail-value">{{detailProfile.location}}</text></view><view><text class="detail-label">可投入时间</text><text class="detail-value">{{detailProfile.availability}}</text></view></view>
+            <view class="detail-section detail-projects"><text class="detail-kicker">SELECTED WORK</text><view class="detail-section-title">过往项目</view>
+              <view class="detail-project" wx:for="{{detailProfile.projects}}" wx:key="number"><text class="project-number">{{item.number}}</text><view><view class="project-title">{{item.title}}</view><text class="project-copy">{{item.detail}}</text></view></view>
+              <text class="detail-copy" wx:if="{{!detailProfile.projects.length}}">尚未公开过往项目。</text>
+            </view>
+            <view class="detail-section detail-surface"><text class="detail-kicker">WORKING TOGETHER</text><view class="detail-section-title">协作方式</view><text class="detail-copy">{{detailProfile.collaboration}}</text></view>
+            <view class="detail-section detail-surface"><text class="detail-kicker">PUBLIC EVIDENCE</text><view class="detail-section-title">能力证据</view><text class="detail-copy">{{detailProfile.evidence}}</text></view>
+            <view class="detail-section detail-surface"><text class="detail-kicker">AGENT REFERENCE</text><view class="detail-section-title">系统推荐参考</view><text class="detail-copy">{{detailProfile.reason}}</text><view class="detail-caution"><text class="detail-label">见面前建议确认</text><text class="detail-copy">{{detailProfile.caution}}</text></view></view>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="person-sheet-actions"><button class="detail-return" bindtap="closePersonDetails">返回</button><button class="detail-connect" data-user-id="{{currentPerson.user_id}}" bindtap="requestConnection">想认识</button></view>
     </view>
-    <view class="need">{{item.collaboration_need}}</view>
-    <view class="tag-row">
-      <view class="tag" wx:for="{{item.skills}}" wx:key="*this" wx:for-item="skill">{{skill}}</view>
-    </view>
-    <view class="reason" wx:if="{{item.recommendation.reasons.length}}">
-      合拍理由：{{item.recommendation.reasons[0]}}
-    </view>
-    <button class="secondary-button" data-user-id="{{item.user_id}}" bindtap="requestConnection">想认识</button>
   </view>
-  <view class="empty" wx:if="{{showEmptyPeople}}">暂时没有新的匹配，稍后再来看看</view>
+
+  <view class="filter-overlay" wx:if="{{filterOpen}}" catchtouchmove="preventFilterBackgroundScroll">
+    <view class="sheet-backdrop" bindtap="closeFilters"></view>
+    <view class="filter-sheet">
+      <view class="filter-head"><button class="filter-back icon-button" bindtap="closeFilters" aria-label="返回发现页"><image class="ui-icon" src="/assets/ui-back.svg" mode="aspectFit" /></button><view class="filter-title">筛选偏好</view><button class="reset-filter" bindtap="resetFilterDraft">重置</button></view>
+      <scroll-view class="filter-sheet-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
+        <view class="filter-content">
+          <button wx:if="{{profileIncomplete}}" class="browse-state" bindtap="openOnboarding">当前处于先看看模式 · 完善身份后可认识和开启附近</button>
+          <view class="filter-section">
+            <view class="filter-section-head"><text class="filter-section-label">协作状态</text><text class="filter-section-hint">可多选</text></view>
+            <view class="filter-choice-list"><button wx:for="{{filterStatusOptions}}" wx:key="value" class="filter-choice {{item.selected ? 'selected' : ''}}" data-group="statuses" data-value="{{item.value}}" bindtap="toggleFilterChoice" aria-pressed="{{item.selected}}">{{item.label}}</button></view>
+          </view>
+          <view class="filter-section">
+            <view class="filter-section-head"><text class="filter-section-label">需要的职能</text><text class="filter-section-hint">可多选</text></view>
+            <view class="filter-choice-list"><button wx:for="{{filterRoleOptions}}" wx:key="value" class="filter-choice {{item.selected ? 'selected' : ''}}" data-group="roles" data-value="{{item.value}}" bindtap="toggleFilterChoice" aria-pressed="{{item.selected}}">{{item.label}}</button></view>
+          </view>
+          <view class="filter-section">
+            <view class="filter-section-head"><text class="filter-section-label">最低投入时间</text></view>
+            <view class="filter-segments"><button wx:for="{{filterHourOptions}}" wx:key="value" class="filter-segment {{filterDraft.minimumHours === item.value ? 'selected' : ''}}" data-field="minimumHours" data-value="{{item.value}}" bindtap="setFilterValue" aria-pressed="{{filterDraft.minimumHours === item.value}}">{{item.label}}</button></view>
+          </view>
+          <view class="filter-section">
+            <view class="filter-section-head"><text class="filter-section-label">现场范围</text><text class="filter-section-hint">不公开精确位置</text></view>
+            <view class="filter-segments"><button wx:for="{{filterDistanceOptions}}" wx:key="value" class="filter-segment {{filterDraft.distance === item.value ? 'selected' : ''}}" data-field="distance" data-value="{{item.value}}" bindtap="setFilterValue" aria-pressed="{{filterDraft.distance === item.value}}">{{item.label}}</button></view>
+            <text class="filter-location-note" wx:if="{{filterDraft.distance !== 'event' && !nearbyEnabled}}">附近距离需在“附近”页主动开启定位；没有定位数据的人不会计入结果。</text>
+          </view>
+          <button class="filter-switch-row" bindtap="toggleFilterEvidence" aria-pressed="{{filterDraft.evidenceRequired}}">
+            <view class="filter-switch-copy"><text class="filter-section-label">只看有公开项目的人</text><text class="filter-section-hint">有公开作品或项目</text></view>
+            <view class="filter-switch-track {{filterDraft.evidenceRequired ? 'is-on' : ''}}"><view class="filter-switch-knob"></view></view>
+          </button>
+        </view>
+      </scroll-view>
+      <view class="filter-actions"><button class="filter-cancel" bindtap="closeFilters">取消</button><button class="filter-apply" bindtap="confirmFilters">查看 {{filterPreviewCount}} 人</button></view>
+    </view>
+  </view>
 </view>
+<scope-selector visible="{{scopeOpen}}" scope="{{discoveryScope}}" event-id="{{scopeEventId}}" events="{{eventChoices}}" bind:close="closeScopeSelector" bind:selectscope="selectDiscoveryScope" bind:managevisibility="manageScopeVisibility" />

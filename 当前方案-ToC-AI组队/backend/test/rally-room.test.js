@@ -74,6 +74,47 @@ describe("human-confirmed COSPAN Space starter pack", () => {
     };
   }
 
+  test("members add tasks across surfaces, re-confirm the plan, and recover blocked or completed work", async () => {
+    const { projectId } = await createTeam();
+    const request = async (path, user, body, surface = "mobile", method = "POST") => {
+      const response = await fetch(`${baseUrl}${path}`, { method, headers: headers(user, { "x-cospan-surface": surface }),
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
+      return { status: response.status, body: await response.json() };
+    };
+    await request(`/api/projects/${projectId}/starter-pack`, "user-zhou", {});
+    for (const user of ["user-zhou", "user-lin"]) await request(`/api/projects/${projectId}/plan-confirmations`, user, {});
+    const payload = { title: "跨端同步验收", objective: "手机创建，电脑推进", acceptance_criteria: "刷新后两端任务一致",
+      mode: "HUMAN", suggested_owner_id: "user-lin", client_request_id: "mobile-task-0001" };
+    assert.equal((await request(`/api/projects/${projectId}/tasks`, "user-su", payload)).status, 403);
+    assert.equal((await request(`/api/projects/${projectId}/tasks`, "user-zhou", { ...payload, suggested_owner_id: "user-su" })).status, 400);
+    const created = await request(`/api/projects/${projectId}/tasks`, "user-zhou", payload);
+    assert.equal(created.status, 201);
+    assert.equal(created.body.task.confirmed_owner_id, null, "suggesting a teammate never assigns them without consent");
+    assert.equal(created.body.starter_pack.version, 2);
+    assert.equal(created.body.starter_pack.status, "PROPOSED");
+    const replay = await request(`/api/projects/${projectId}/tasks`, "user-zhou", payload);
+    assert.equal(replay.body.task.id, created.body.task.id);
+    assert.equal(replay.body.idempotent_replay, true);
+    assert.equal((await request(`/api/projects/${projectId}/tasks`, "user-zhou", { ...payload, title: "changed" })).status, 409);
+    const taskPath = `/api/tasks/${created.body.task.id}`;
+    const move = (user, action) => request(taskPath, user, { action }, "desktop", "PATCH");
+    await move("user-lin", "claim");
+    assert.equal((await move("user-lin", "start")).status, 409);
+    for (const user of ["user-zhou", "user-lin"]) await request(`/api/projects/${projectId}/plan-confirmations`, user, {});
+    assert.equal((await move("user-lin", "start")).body.task.status, "IN_PROGRESS");
+    assert.equal((await move("user-lin", "block")).body.task.status, "BLOCKED");
+    assert.equal((await move("user-zhou", "resume")).status, 403);
+    assert.equal((await move("user-lin", "complete")).status, 409);
+    assert.equal((await move("user-lin", "resume")).body.task.status, "IN_PROGRESS");
+    assert.equal((await move("user-lin", "complete")).body.task.status, "DONE");
+    assert.equal((await move("user-lin", "reopen")).body.task.status, "IN_PROGRESS");
+    const recovered = (await request(`/api/projects/${projectId}/room`, "user-zhou", undefined, "mobile", "GET")).body;
+    assert.equal(recovered.tasks.length, 4);
+    assert.equal(recovered.tasks.find((task) => task.id === created.body.task.id).status, "IN_PROGRESS");
+    for (const event of ["task_created", "task_resumed", "task_reopened"]) assert.ok(recovered.activity.some((item) => item.event_type === event));
+    assert.ok(recovered.activity.some((item) => item.event_type === "task_resumed" && item.source === "desktop"));
+  });
+
   test("Agent suggestions stay proposals until people claim tasks and all members confirm", async () => {
     const { projectId, roleNeedId } = await createTeam();
     const generated = await fetch(`${baseUrl}/api/projects/${projectId}/starter-pack`, {

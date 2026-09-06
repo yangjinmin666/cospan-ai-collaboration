@@ -11,6 +11,8 @@ Page({
     actionError: "",
     actionTaskId: "",
     agentTaskId: "",
+    expandedTasks: {},
+    showProjectSummary: false,
   },
 
   onLoad(options) {
@@ -44,6 +46,7 @@ Page({
       const claimableTask = firstClaimableTask(room.tasks || []);
       room.tasks = (room.tasks || []).map((task) => ({
         ...task,
+        statusLabel: ({ PROPOSED: "待领取", ACCEPTED: "已领取", IN_PROGRESS: "进行中", BLOCKED: "受阻", DONE: "已完成" })[task.status] || "待更新",
         ownerName: task.confirmed_owner_id
           ? (memberNames.get(task.confirmed_owner_id) || "已有负责人")
           : "待领取",
@@ -57,6 +60,9 @@ Page({
       room.canConfirmPlan = Boolean(
         room.starter_pack && room.starter_pack.status !== "CONFIRMED"
       );
+      room.progressPercent = room.confirmation_progress?.required
+        ? Math.round((room.confirmation_progress.confirmed / room.confirmation_progress.required) * 100)
+        : 0;
       this.setData({ room: addAgentPresentation(room, currentUserId), loadError: "" });
       return true;
     } catch (error) {
@@ -80,6 +86,15 @@ Page({
       );
       wx.showToast({ title: "任务建议已生成", icon: "success" });
     });
+  },
+
+  toggleTaskDetails(event) {
+    const id = event.currentTarget.dataset.taskId;
+    this.setData({ expandedTasks: { ...this.data.expandedTasks, [id]: !this.data.expandedTasks[id] } });
+  },
+
+  toggleProjectSummary() {
+    this.setData({ showProjectSummary: !this.data.showProjectSummary });
   },
 
   async claimTask(event) {

@@ -1,1 +1,3 @@
-{ "navigationBarTitleText": "协作" }
+{
+  "navigationStyle": "custom"
+}

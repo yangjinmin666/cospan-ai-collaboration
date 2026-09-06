@@ -1,0 +1,46 @@
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const vm = require("node:vm");
+const { createRequire } = require("node:module");
+const { buildPersonDetail } = require("../miniprogram/utils/person-detail.js");
+test("detail uses complete authorized fields and never synthesizes missing profile claims", () => {
+  const long = "公开的完整协作介绍".repeat(80);
+  const profile = buildPersonDetail({ collaboration_need: long, evidence: ["项目一", "项目二"], collaboration_preferences: ["异步协作"], recommendation: { reasons: ["参考一", "参考二"] } });
+  assert.equal(profile.bio, long);
+  assert.equal(profile.projects.length, 2);
+  assert.equal(profile.reason, "参考一；参考二");
+  assert.equal(profile.collaboration, "异步协作");
+  const empty = buildPersonDetail();
+  assert.match(empty.bio, /没有授权/);
+  assert.equal(empty.projects.length, 0);
+  assert.match(empty.availability, /未公开/);
+});
+test("detail preview, expansion, handle collapse and close restore the tab bar", () => {
+  const file = path.resolve(__dirname, "../miniprogram/pages/discover/discover.js");
+  let definition, overlayOpen;
+  vm.runInNewContext(fs.readFileSync(file, "utf8"), { require: createRequire(file), Page: p => definition = p, getApp: () => ({}), wx: {}, console });
+  const page = { ...definition, data: { ...definition.data, currentPerson: { collaboration_need: "完整介绍" } }, setData(patch) { Object.assign(this.data, patch); }, getTabBar: () => ({ setData: p => overlayOpen = p.overlayOpen }) };
+  page.openPersonDetails();
+  assert.equal(page.data.detailExpanded, false);
+  assert.equal(overlayOpen, true);
+  page.startDetailGesture({ touches: [{ clientX: 100, clientY: 200 }], currentTarget: { dataset: {} } });
+  page.endDetailGesture({ changedTouches: [{ clientX: 101, clientY: 100 }] });
+  assert.equal(page.data.detailExpanded, true);
+  page.startDetailGesture({ touches: [{ clientX: 100, clientY: 100 }], currentTarget: { dataset: { handle: true } } });
+  page.endDetailGesture({ changedTouches: [{ clientX: 100, clientY: 180 }] });
+  assert.equal(page.data.detailExpanded, false);
+  page.closePersonDetails();
+  assert.equal(page.data.showDetails, false);
+  assert.equal(overlayOpen, false);
+});
+test("detail sections follow Web order and actions remain outside scrolling content", () => {
+  const view = fs.readFileSync(path.resolve(__dirname, "../miniprogram/pages/discover/discover.wxml"), "utf8");
+  const labels = ["本人简介", "SELECTED WORK", "WORKING TOGETHER", "PUBLIC EVIDENCE", "AGENT REFERENCE"];
+  for (let i = 1; i < labels.length; i++) assert.ok(view.indexOf(labels[i]) > view.indexOf(labels[i-1]));
+  assert.match(view, /<\/scroll-view>\s*<view class="person-sheet-actions">/);
+  assert.match(view, /scroll-y="\{\{detailExpanded\}\}"/);
+  assert.match(view, /ui-wave.svg/);
+  assert.doesNotMatch(view, /deck-action-circle">认识/);
+});

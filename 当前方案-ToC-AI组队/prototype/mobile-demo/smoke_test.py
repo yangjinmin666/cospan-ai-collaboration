@@ -1243,13 +1243,13 @@ def main():
         assert report["flow"]["mobile_avoids_permission_dashboard"]
         page.get_by_role("button", name="查看分工建议").click()
         report["flow"]["human_confirmation_required"] = page.get_by_text(
-            "Agent 只能提出建议。每位成员都可以认领真正想做的部分，最终选择权交给人。",
+            "成员自行领取，全员确认后启动。",
             exact=True,
         ).is_visible()
         assert report["flow"]["human_confirmation_required"]
         page.locator(".workspace-mobile-content [data-action='reassign-task']").first.click()
-        report["flow"]["human_can_override_agent"] = page.get_by_text(
-            "关键路径 · 独立 · 当前负责人：周闻", exact=True
+        report["flow"]["human_can_override_agent"] = page.locator(".workspace-mobile-content").get_by_text(
+            "当前负责人：周闻", exact=True
         ).first.is_visible()
         assert report["flow"]["human_can_override_agent"]
         page.locator(".workspace-mobile-content [data-action='confirm-workspace-plan']").click()
@@ -1273,6 +1273,13 @@ def main():
         page.wait_for_timeout(260)
         page.screenshot(path=str(OUTPUT_DIR / "workspace-mobile.png"), full_page=True)
         assert_mobile_visual_baseline(page, report["visual_baseline"], "workspace_mobile")
+        report["flow"]["mobile_uses_only_mobile_shell"] = (
+            page.locator('[data-app-shell="mobile"]').count() == 1
+            and page.locator('[data-app-shell="desktop"]').count() == 0
+            and page.locator(".phone-shell").count() == 1
+            and page.locator(".desktop-app-nav").count() == 0
+        )
+        assert report["flow"]["mobile_uses_only_mobile_shell"]
 
         report["flow"] = {
             **report["flow"],
@@ -1515,45 +1522,98 @@ def main():
         workspace_desktop.on("pageerror", lambda error: report["errors"].append(f"workspace-page:{error}"))
         workspace_desktop.goto(f"{BASE_URL}/?variant=A&workspace=1")
         workspace_desktop.wait_for_load_state("networkidle")
-        report["flow"]["desktop_workspace_is_primary"] = workspace_desktop.locator(".workspace-desktop-grid").is_visible()
-        report["flow"]["desktop_workspace_has_three_zones"] = workspace_desktop.locator(".desktop-workspace-panel").count() == 3
-        report["flow"]["desktop_workspace_hands_off_to_tools"] = (
-            workspace_desktop.locator(".workspace-desktop-grid").get_by_role("button", name="飞书").is_visible()
-            and workspace_desktop.locator(".workspace-desktop-grid").get_by_role("button", name="GitHub").is_visible()
+        report["flow"]["desktop_uses_only_desktop_shell"] = (
+            workspace_desktop.locator('[data-app-shell="desktop"]').count() == 1
+            and workspace_desktop.locator('[data-app-shell="mobile"]').count() == 0
+            and workspace_desktop.locator(".phone-shell").count() == 0
+            and workspace_desktop.locator(".app-nav").count() == 0
+            and workspace_desktop.locator(".desktop-app-nav").count() == 1
         )
+        report["flow"]["desktop_workspace_is_primary"] = workspace_desktop.locator(".workspace-desktop-grid").is_visible()
+        report["flow"]["desktop_workspace_has_project_navigation"] = workspace_desktop.get_by_role("navigation", name="项目内容").is_visible()
+        report["flow"]["desktop_workspace_detail_is_on_demand"] = workspace_desktop.get_by_label("任务详情", exact=True).count() == 0
+        assert workspace_desktop.locator(".wb-task-open").count() == 3
+        workspace_desktop.locator(".wb-task-open").nth(1).click()
+        assert workspace_desktop.get_by_label("任务详情", exact=True).is_visible()
+        assert workspace_desktop.get_by_label("任务详情", exact=True).get_by_text("验收标准", exact=True).is_visible()
+        workspace_desktop.get_by_role("button", name="关闭任务详情").click()
+        workspace_desktop.get_by_role("button", name="看板", exact=True).click()
+        assert workspace_desktop.locator(".wb-column").count() == 4
+        workspace_desktop.get_by_role("button", name="列表", exact=True).click()
+        workspace_desktop.get_by_role("button", name="团队成员", exact=True).click()
         report["flow"]["desktop_connected_member_has_private_chat"] = workspace_desktop.locator(
             ".workspace-desktop-grid"
         ).get_by_role("button", name="私聊 林澈", exact=True).is_visible()
+        assert report["flow"]["desktop_uses_only_desktop_shell"]
         assert report["flow"]["desktop_workspace_is_primary"]
-        assert report["flow"]["desktop_workspace_has_three_zones"]
-        assert report["flow"]["desktop_workspace_hands_off_to_tools"]
+        assert report["flow"]["desktop_workspace_has_project_navigation"]
+        assert report["flow"]["desktop_workspace_detail_is_on_demand"]
         assert report["flow"]["desktop_connected_member_has_private_chat"]
         workspace_desktop.locator(".workspace-desktop-grid").get_by_role(
             "button", name="私聊 林澈", exact=True
         ).click()
         assert workspace_desktop.get_by_label("与 林澈 的对话", exact=True).is_visible()
         workspace_desktop.get_by_role("button", name="返回连接列表").click()
+        workspace_desktop.get_by_role("button", name="项目任务", exact=True).click()
         workspace_desktop.screenshot(path=str(OUTPUT_DIR / "workspace-desktop.png"), full_page=True)
         workspace_desktop.close()
 
-        compact_desktop = browser.new_page(viewport={"width": 877, "height": 783})
+        # The Codex desktop browser can be only ~550px wide. Pointer capability,
+        # not a tablet-sized breakpoint, must keep it in desktop-console mode.
+        compact_desktop = browser.new_page(viewport={"width": 551, "height": 783})
         compact_desktop.goto(f"{BASE_URL}/?variant=A&workspace=1")
         compact_desktop.wait_for_load_state("networkidle")
         compact_desktop_layout = compact_desktop.evaluate(
             """() => ({
                 desktopVisible: getComputedStyle(document.querySelector('.workspace-desktop-grid')).display === 'grid',
-                mobileVisible: getComputedStyle(document.querySelector('.workspace-mobile-content')).display !== 'none',
+                mobileVisible: Boolean(document.querySelector('.workspace-mobile-content')),
                 fitsWidth: document.body.scrollWidth <= window.innerWidth,
-                zones: document.querySelectorAll('.desktop-workspace-panel').length,
+                zones: document.querySelectorAll('.desktop-app-nav, .wb-main').length,
+                desktopShells: document.querySelectorAll('[data-app-shell="desktop"]').length,
+                mobileShells: document.querySelectorAll('[data-app-shell="mobile"]').length,
+                phoneShells: document.querySelectorAll('.phone-shell').length,
+                navAtLeft: parseFloat(getComputedStyle(document.querySelector('.desktop-app-nav')).left) === 0
+                    && parseFloat(getComputedStyle(document.querySelector('.desktop-app-nav')).top) === 0,
+                sharedFrameGap: parseFloat(getComputedStyle(document.querySelector('.workspace-desktop-grid')).gap) === 0,
             })"""
         )
         report["flow"]["compact_pc_uses_desktop_workspace"] = (
             compact_desktop_layout["desktopVisible"]
             and not compact_desktop_layout["mobileVisible"]
             and compact_desktop_layout["fitsWidth"]
-            and compact_desktop_layout["zones"] == 3
+            and compact_desktop_layout["zones"] == 2
+            and compact_desktop_layout["desktopShells"] == 1
+            and compact_desktop_layout["mobileShells"] == 0
+            and compact_desktop_layout["phoneShells"] == 0
+            and compact_desktop_layout["navAtLeft"]
+            and compact_desktop_layout["sharedFrameGap"]
         )
         assert report["flow"]["compact_pc_uses_desktop_workspace"], compact_desktop_layout
+        compact_desktop.set_viewport_size({"width": 390, "height": 783})
+        compact_desktop.wait_for_function(
+            "document.body.dataset.shell === 'mobile'"
+        )
+        narrowed_shells = compact_desktop.evaluate(
+            """() => ({
+                desktop: document.querySelectorAll('[data-app-shell="desktop"]').length,
+                mobile: document.querySelectorAll('[data-app-shell="mobile"]').length,
+            })"""
+        )
+        compact_desktop.set_viewport_size({"width": 551, "height": 783})
+        compact_desktop.wait_for_function(
+            "document.body.dataset.shell === 'desktop'"
+        )
+        restored_shells = compact_desktop.evaluate(
+            """() => ({
+                desktop: document.querySelectorAll('[data-app-shell="desktop"]').length,
+                mobile: document.querySelectorAll('[data-app-shell="mobile"]').length,
+            })"""
+        )
+        report["flow"]["shells_switch_without_coexisting"] = (
+            narrowed_shells == {"desktop": 0, "mobile": 1}
+            and restored_shells == {"desktop": 1, "mobile": 0}
+        )
+        assert report["flow"]["shells_switch_without_coexisting"]
         compact_desktop.close()
 
         page.goto(f"{BASE_URL}/?variant=A")

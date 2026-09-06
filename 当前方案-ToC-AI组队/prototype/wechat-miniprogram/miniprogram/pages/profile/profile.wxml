@@ -1,26 +1,23 @@
-<view class="page profile-page" style="padding-top: {{navigationBottom}}px;">
+<view class="page profile-page" style="padding-top: {{navigationTop}}px;">
   <view class="profile-header">
-    <view class="profile-title-group">
-      <button class="settings-trigger" bindtap="openSettings" aria-label="打开设置"><text>⚙︎</text></button>
-      <view class="profile-page-title">我的</view>
-    </view>
-    <view class="event-context">
-      <view class="context-icon"><i></i></view>
-      <view class="context-copy"><small>当前范围</small><strong>{{eventName}}</strong></view>
-    </view>
+    <button class="settings-trigger icon-button" bindtap="openSettings" aria-label="打开设置"><image class="ui-icon ui-icon-solid" src="/assets/ui-settings.svg" mode="aspectFit" /></button>
+    <button class="event-trigger icon-button" bindtap="openEventSelector" aria-label="选择当前范围，当前为 {{scopeLabel}}">
+      <image class="ui-icon" src="/assets/ui-event.svg" mode="aspectFit" />
+    </button>
+    <view class="profile-page-title">我的</view>
   </view>
 
   <view class="profile-loading-state" wx:if="{{loading && !user}}">
     <view class="loading-orbit"></view>
-    <strong>正在加载协作护照</strong>
-    <text>同步账号、公开范围和协作证据…</text>
+    <strong class="state-title">正在加载协作护照</strong>
+    <text class="state-copy">同步账号、公开范围和协作证据…</text>
   </view>
 
   <view class="profile-error-state" wx:elif="{{loadError && !user}}">
     <view class="error-mark">!</view>
-    <strong>资料加载失败</strong>
-    <text>{{loadError}}。这次不会再显示白屏，你可以直接重新连接。</text>
-    <button bindtap="retryLoad" loading="{{loading}}">重新加载</button>
+    <strong class="state-title">资料加载失败</strong>
+    <text class="state-copy">{{loadError}}。这次不会再显示白屏，你可以直接重新连接。</text>
+    <button class="retry-load-button" bindtap="retryLoad" loading="{{loading}}">重新加载</button>
   </view>
 
   <block wx:elif="{{user}}">
@@ -33,14 +30,14 @@
     </view>
   </view>
 
-  <view class="visibility-panel">
+  <view class="visibility-panel" id="profile-visibility">
     <view class="visibility-copy">
       <view class="micro-label">DISCOVERABILITY</view>
       <view class="visibility-title">{{visibilityTitle}}</view>
       <view class="visibility-detail">{{visibilityCopy}}</view>
     </view>
-    <button class="profile-switch-wrap" disabled="{{saving || !profile}}" aria-pressed="{{visible}}" bindtap="toggleVisibility">
-      <view class="profile-switch {{visible ? 'is-on' : ''}}"><i></i></view>
+    <button class="profile-switch-wrap {{saving || !profile ? 'is-disabled' : ''}}" disabled="{{saving || !profile}}" aria-pressed="{{visible}}" bindtap="toggleVisibility">
+      <view class="profile-switch {{visible ? 'is-on' : ''}}"><i class="profile-switch-knob"></i></view>
     </button>
   </view>
 
@@ -51,27 +48,27 @@
     </view>
     <view class="outward-identity">
       <view class="memoji-avatar outward-avatar {{avatarClass}}"><image class="memoji-sheet" src="/assets/default-memoji-grid.jpg" mode="scaleToFill" /></view>
-      <view class="outward-person"><strong>{{user.display_name}}</strong><text>{{profile.role || '协作资料待完善'}}</text></view>
+      <view class="outward-person"><strong class="outward-name">{{user.display_name}}</strong><text class="outward-role">{{profile.role || '协作资料待完善'}}</text></view>
       <view class="public-state">{{visible ? '本场展会公开' : '当前暂停'}}</view>
     </view>
 
     <view class="public-blocks" wx:if="{{publicBlocks.length}}">
       <view class="public-block" wx:for="{{publicBlocks}}" wx:key="id">
         <view class="public-block-mark">{{item.mark}}</view>
-        <view>
-          <text>{{item.kicker}}</text><strong>{{item.title}}</strong><small>{{item.detail}}</small>
+        <view class="public-block-body">
+          <text class="public-block-kicker">{{item.kicker}}</text><strong class="public-block-title">{{item.title}}</strong><small class="public-block-detail">{{item.detail}}</small>
           <view class="public-block-authorization {{item.authorized ? 'is-authorized' : ''}}">{{item.authorizationLabel}}</view>
         </view>
       </view>
     </view>
     <view class="public-empty" wx:else>
       <view class="empty-add">+</view>
-      <strong>还没有协作证据 Block</strong>
-      <text>添加作品、经历或公开平台，让队友看到可追问的真实证据。</text>
+      <strong class="public-empty-title">还没有协作证据 Block</strong>
+      <text class="public-empty-copy">添加作品、经历或公开平台，让队友看到可追问的真实证据。</text>
     </view>
 
     <view class="outward-actions">
-      <button class="profile-add-content" bindtap="openPlatformSettings"><text>+</text> 添加内容</button>
+      <button class="profile-add-content" bindtap="openPlatformSettings"><text class="add-content-icon">+</text> 添加内容</button>
       <button class="profile-edit-foundation" bindtap="editProfile">编辑基础资料</button>
     </view>
     <view class="public-boundary">只有你授权的内容才会出现在推荐、附近、名册与 NFC / QR 卡片中。</view>
@@ -80,28 +77,28 @@
   <view class="device-preview" id="profile-device-preview">
     <view class="device-preview-head">
       <view><view class="micro-label">DEMO BADGE</view><view class="device-preview-title">4.3″ 竖向现场工牌</view></view>
-      <view class="sync-chip"><strong>● 已同步</strong><text>ESP32-8048S043</text><text>480 × 800</text></view>
+      <view class="sync-chip"><strong class="sync-state">工牌预览</strong><text class="sync-detail">ESP32-8048S043</text><text class="sync-detail">480 × 800</text></view>
     </view>
     <view class="demo-badge {{visible ? '' : 'is-paused'}}">
       <view class="demo-badge-top">
-        <view class="demo-badge-brand">COSPAN <text>合拍</text></view>
+        <view class="demo-badge-brand">COSPAN <text class="demo-badge-brand-cn">合拍</text></view>
         <view class="demo-badge-event">{{eventName}}</view>
         <view class="demo-badge-state">{{visible ? '● 展会内可见' : '○ 已暂停'}}</view>
       </view>
       <view class="demo-badge-main">
         <view class="badge-identity">
           <view class="memoji-avatar badge-avatar {{avatarClass}}"><image class="memoji-sheet" src="/assets/default-memoji-grid.jpg" mode="scaleToFill" /></view>
-          <view><small>PASSPORT P·0087</small><strong>{{user.display_name}}</strong><text>{{profile.role || '协作资料待完善'}}</text></view>
+          <view class="badge-identity-copy"><small class="badge-kicker">PASSPORT P·0087</small><strong class="badge-name">{{user.display_name}}</strong><text class="badge-role">{{profile.role || '协作资料待完善'}}</text></view>
         </view>
-        <view class="badge-intent"><small>CURRENT COLLABORATION INTENT</small><strong>{{profile.collaboration_need || '寻找愿意一起验证想法的伙伴'}}</strong><text>{{profile.availability || '现场可沟通'}}</text></view>
+        <view class="badge-intent"><small class="badge-kicker">CURRENT COLLABORATION INTENT</small><strong class="badge-intent-title">{{profile.collaboration_need || '寻找愿意一起验证想法的伙伴'}}</strong><text class="badge-intent-detail">{{profile.availability || '现场可沟通'}}</text></view>
         <view class="badge-connect">
           <view class="badge-qr">
-            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            <i class="badge-qr-cell"></i><i class="badge-qr-cell badge-qr-cut"></i><i class="badge-qr-cell"></i><i class="badge-qr-cell badge-qr-cut"></i><i class="badge-qr-cell"></i><i class="badge-qr-cell"></i><i class="badge-qr-cell"></i><i class="badge-qr-cell badge-qr-cut"></i><i class="badge-qr-cell"></i>
           </view>
-          <strong>扫码建联</strong><text>或碰卡快速连接</text>
+          <strong class="badge-connect-title">连接入口示意</strong><text class="badge-connect-detail">预览图不可扫码</text>
         </view>
       </view>
-      <view class="demo-badge-foot"><text>◉ NFC READY</text><text>现场公开 · 随时可暂停</text><text class="badge-code">P0087</text></view>
+      <view class="demo-badge-foot"><text>◉ NFC 预览</text><text>现场公开 · 随时可暂停</text><text class="badge-code">P0087</text></view>
     </view>
     <button class="edit-badge-button" bindtap="editProfile">编辑卡片公开内容</button>
   </view>
@@ -109,31 +106,31 @@
   <view class="platform-panel" id="profile-platform-settings">
     <view class="platform-panel-head">
       <view><view class="micro-label">AUTHORIZED EVIDENCE</view><view class="platform-title">连接你的外部平台</view></view>
-      <view>{{linkedPlatformCount}} 已连接</view>
+      <view class="platform-count">{{linkedPlatformCount}} 已连接</view>
     </view>
     <view class="platform-note">只保存你主动提交的公开地址，默认不扩大公开范围。</view>
     <view class="platform-list">
       <view class="platform-row">
         <view class="platform-mark">W</view>
-        <view class="platform-main"><view class="card-title">个人网站</view><input placeholder="https://你的主页" value="{{linkForm.website}}" data-platform="website" bindinput="updateLink" /></view>
-        <button loading="{{linkSaving === 'website'}}" data-platform="website" bindtap="saveLink">保存</button>
+        <view class="platform-main"><view class="card-title">个人网站</view><input class="platform-input" placeholder="https://你的主页" value="{{linkForm.website}}" data-platform="website" bindinput="updateLink" /></view>
+        <button class="platform-save-button" loading="{{linkSaving === 'website'}}" data-platform="website" bindtap="saveLink">保存</button>
       </view>
       <view class="platform-row">
         <view class="platform-mark github-mark">GH</view>
-        <view class="platform-main"><view class="card-title">GitHub</view><input placeholder="https://github.com/你的账号" value="{{linkForm.github}}" data-platform="github" bindinput="updateLink" /></view>
-        <button loading="{{linkSaving === 'github'}}" data-platform="github" bindtap="saveLink">保存</button>
+        <view class="platform-main"><view class="card-title">GitHub</view><input class="platform-input" placeholder="https://github.com/你的账号" value="{{linkForm.github}}" data-platform="github" bindinput="updateLink" /></view>
+        <button class="platform-save-button" loading="{{linkSaving === 'github'}}" data-platform="github" bindtap="saveLink">保存</button>
       </view>
       <view class="platform-row">
         <view class="platform-mark xhs-mark">RED</view>
-        <view class="platform-main"><view class="card-title">小红书</view><input placeholder="https://公开主页链接" value="{{linkForm.xiaohongshu}}" data-platform="xiaohongshu" bindinput="updateLink" /></view>
-        <button loading="{{linkSaving === 'xiaohongshu'}}" data-platform="xiaohongshu" bindtap="saveLink">保存</button>
+        <view class="platform-main"><view class="card-title">小红书</view><input class="platform-input" placeholder="https://公开主页链接" value="{{linkForm.xiaohongshu}}" data-platform="xiaohongshu" bindinput="updateLink" /></view>
+        <button class="platform-save-button" loading="{{linkSaving === 'xiaohongshu'}}" data-platform="xiaohongshu" bindtap="saveLink">保存</button>
       </view>
     </view>
   </view>
 
   <view class="profile-fields">
-    <button bindtap="editProfile"><view><strong>重新组装协作护照</strong><text>更新身份、能力、投入与需求</text></view><b>4 步 ›</b></button>
-    <button bindtap="editProfile"><view><strong>能力与项目证据</strong><text>管理对外协作卡中的 Block</text></view><b>{{publicBlockCount}} Block ›</b></button>
+    <button class="profile-field-row" bindtap="editProfile"><view class="profile-field-copy"><strong class="profile-field-title">重新组装协作护照</strong><text class="profile-field-detail">更新身份、能力、投入与需求</text></view><b class="profile-field-value">4 步 ›</b></button>
+    <button class="profile-field-row is-last" bindtap="editProfile"><view class="profile-field-copy"><strong class="profile-field-title">能力与项目证据</strong><text class="profile-field-detail">管理对外协作卡中的 Block</text></view><b class="profile-field-value">{{publicBlockCount}} Block ›</b></button>
   </view>
 
   <view class="account-note">微信 OpenID 只用于识别登录，COSPAN 内部账号和业务数据独立存储。</view>
@@ -142,19 +139,22 @@
 
 <view class="settings-overlay" wx:if="{{showSettings}}">
   <view class="settings-backdrop" bindtap="closeSettings"></view>
-  <view class="settings-sheet">
+  <scroll-view class="settings-sheet" scroll-y="true" enhanced="true" show-scrollbar="false">
+    <view class="settings-sheet-content">
     <view class="settings-handle"></view>
-    <view class="settings-head"><view><view class="micro-label">PROFILE / SETTINGS</view><strong>我的设置</strong></view><button bindtap="closeSettings">×</button></view>
+    <view class="settings-head"><view><view class="micro-label">PROFILE / SETTINGS</view><strong class="settings-title">我的设置</strong></view><button class="settings-close icon-button" bindtap="closeSettings"><image class="ui-icon" src="/assets/ui-close.svg" mode="aspectFit" /></button></view>
     <view class="settings-list">
-      <button data-setting="profile" bindtap="openSettingDetail"><view class="settings-mark">我</view><view><strong>协作资料</strong><text>编辑身份、能力、投入和需求</text></view><b class="settings-arrow">›</b></button>
-      <button data-setting="platform" bindtap="openSettingDetail"><view class="settings-mark">链</view><view><strong>公开主页</strong><text>管理作品与外部平台链接</text></view><b class="settings-arrow">›</b></button>
-      <button data-setting="email" bindtap="openSettingDetail"><view class="settings-mark">@</view><view><strong>登录邮箱</strong><text>{{emailDetail}}</text></view><b class="settings-arrow">›</b></button>
-      <button bindtap="toggleSwipeSound" aria-pressed="{{swipeSoundEnabled}}"><view class="settings-mark settings-sfx">SFX</view><view><strong>滑动声效</strong><text>{{swipeSoundEnabled ? '已开启 · 发现页滑动保留方向反馈' : '已关闭 · 仅保留视觉反馈'}}</text></view><view class="settings-mini-toggle {{swipeSoundEnabled ? 'is-on' : ''}}"><i></i></view></button>
-      <button data-setting="device" bindtap="openSettingDetail"><view class="settings-mark">⌁</view><view><strong>设备与隐私</strong><text>1 台 AI Passport 已连接</text></view><b class="settings-arrow">›</b></button>
-      <button data-setting="authorization" bindtap="openSettingDetail"><view class="settings-mark">◎</view><view><strong>数据与授权</strong><text>管理公开字段和平台链接权限</text></view><b class="settings-arrow">›</b></button>
-      <button data-setting="activity" bindtap="openSettingDetail"><view class="settings-mark">展</view><view><strong>展会与账号</strong><text>{{eventName}}</text></view><b class="settings-arrow">›</b></button>
+      <button class="settings-row" data-setting="profile" bindtap="openSettingDetail"><view class="settings-mark">我</view><view class="settings-row-copy"><strong class="settings-row-title">协作资料</strong><text class="settings-row-detail">编辑身份、能力、投入和需求</text></view><b class="settings-arrow">›</b></button>
+      <button class="settings-row" data-setting="platform" bindtap="openSettingDetail"><view class="settings-mark">链</view><view class="settings-row-copy"><strong class="settings-row-title">公开主页</strong><text class="settings-row-detail">管理作品与外部平台链接</text></view><b class="settings-arrow">›</b></button>
+      <button class="settings-row" data-setting="email" bindtap="openSettingDetail"><view class="settings-mark">@</view><view class="settings-row-copy"><strong class="settings-row-title">登录邮箱</strong><text class="settings-row-detail">{{emailDetail}}</text></view><b class="settings-arrow">›</b></button>
+      <button class="settings-row" bindtap="toggleSwipeSound" aria-pressed="{{swipeSoundEnabled}}"><view class="settings-mark settings-sfx">SFX</view><view class="settings-row-copy"><strong class="settings-row-title">滑动声效</strong><text class="settings-row-detail">{{swipeSoundEnabled ? '已开启 · 发现页滑动保留方向反馈' : '已关闭 · 仅保留视觉反馈'}}</text></view><view class="settings-mini-toggle {{swipeSoundEnabled ? 'is-on' : ''}}"><i class="settings-toggle-knob"></i></view></button>
+      <button class="settings-row" data-setting="device" bindtap="openSettingDetail"><view class="settings-mark">⌁</view><view class="settings-row-copy"><strong class="settings-row-title">设备与隐私</strong><text class="settings-row-detail">查看工牌预览与公开范围</text></view><b class="settings-arrow">›</b></button>
+      <button class="settings-row" data-setting="authorization" bindtap="openSettingDetail"><view class="settings-mark">◎</view><view class="settings-row-copy"><strong class="settings-row-title">数据与授权</strong><text class="settings-row-detail">管理公开字段和平台链接权限</text></view><b class="settings-arrow">›</b></button>
+      <button class="settings-row is-last" data-setting="activity" bindtap="openSettingDetail"><view class="settings-mark">展</view><view class="settings-row-copy"><strong class="settings-row-title">展会与账号</strong><text class="settings-row-detail">{{eventName}}</text></view><b class="settings-arrow">›</b></button>
     </view>
-    <view class="settings-privacy"><strong>默认最小公开</strong><text>COSPAN 只展示你在本场展会主动授权的字段，展会结束后自动隐藏。退出不会删除资料与建联记录。</text></view>
+    <view class="settings-privacy"><strong class="settings-privacy-title">默认最小公开</strong><text class="settings-privacy-copy">COSPAN 只展示你在本场展会主动授权的字段，展会结束后自动隐藏。退出不会删除资料与建联记录。</text></view>
     <button class="profile-logout-button" bindtap="logout">退出当前账号</button>
-  </view>
+    </view>
+  </scroll-view>
 </view>
+<scope-selector visible="{{scopeOpen}}" scope="{{discoveryScope}}" event-id="{{scopeEventId}}" events="{{eventChoices}}" bind:close="closeScopeSelector" bind:selectscope="selectDiscoveryScope" bind:managevisibility="manageScopeVisibility" />

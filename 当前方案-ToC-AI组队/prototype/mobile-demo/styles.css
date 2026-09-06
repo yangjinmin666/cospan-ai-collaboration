@@ -129,6 +129,13 @@ body::before {
 .profile-settings-trigger { width: 44px; height: 44px; flex: 0 0 auto; display: grid; place-items: center; padding: 0; border: 1px solid #d9e1ea; border-radius: 50%; background: rgba(255,255,255,.96); color: #263543; box-shadow: 0 9px 24px rgba(31,48,70,.13); cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; }
 .profile-settings-trigger:hover { transform: translateY(-2px) rotate(8deg); box-shadow: 0 12px 28px rgba(31,48,70,.17); }
 .profile-settings-trigger svg { width: 21px; height: 21px; fill: currentColor; }
+/* One icon scale across platform-specific controls; settings stays solid. */
+.discovery-filter-trigger > svg, .context-switch-glyph > svg,
+.filter-sheet-close > svg, .context-switcher-head > button > svg, .profile-settings-head > button > svg,
+.profile-block-sheet-head > button > svg, .onboarding-back > svg,
+button[aria-label^="返回"] > svg { display: block; width: 24px; height: 24px; margin: auto; flex: 0 0 24px; }
+.context-switch-trigger .context-switch-glyph { display: grid; place-items: center; width: 24px; height: 24px; border: 0; background: transparent; }
+.context-switch-trigger .context-switch-glyph::before, .context-switch-trigger .context-switch-glyph::after { display: none; }
 .context-switch-trigger { position: relative; width: min(142px, 38vw); min-width: var(--touch-target); height: var(--touch-target); flex: 0 1 auto; display: grid; grid-template-columns: 24px minmax(0,1fr); align-items: center; gap: 7px; padding: 5px 9px; border: 1px solid #d8dfe7; border-radius: 16px; background: rgba(255,255,255,.97); color: #263543; cursor: pointer; transition: transform .18s ease, border-color .18s ease, background .18s ease; }
 .context-switch-trigger:hover { transform: translateY(-1px); border-color: #c5d0dc; background: #f8fafc; }
 .context-switch-trigger:active { transform: scale(.96); }
@@ -1113,61 +1120,6 @@ body[data-source="android-app"] .toast { top: max(44px, calc(var(--rally-safe-ar
 .public-field-grid input { width: 17px; height: 17px; accent-color: var(--guide-blue); }
 .primary-button:disabled, .secondary-button:disabled, button[aria-busy="true"] { opacity: .56; cursor: progress; }
 
-/* Compact desktop: the in-app browser is a PC surface even when its panel is under 1000px. */
-@media (min-width: 851px) and (max-width: 999px) {
-  body[data-tab="collaboration"] { overflow: hidden; background: #eef1f5; }
-  body[data-tab="collaboration"]::before { opacity: .18; }
-  body[data-tab="collaboration"] .prototype-stage { min-height: 100vh; grid-template-columns: minmax(0,1fr); align-items: stretch; gap: 0; padding: 12px; }
-  body[data-tab="collaboration"] .phone-shell { width: calc(100vw - 24px); min-height: calc(100vh - 24px); height: calc(100vh - 24px); border: 1px solid #d5dce5; border-radius: 22px; background: #f8f9fb; box-shadow: 0 20px 56px rgba(31,48,70,.13); }
-  body[data-tab="collaboration"] .prototype-notes { display: none; }
-  body[data-tab="collaboration"] .screen { height: 100%; padding: 0; overflow-y: auto; }
-  body[data-tab="collaboration"] .view { min-height: 100%; padding: 18px 12px 24px 84px; }
-  body[data-tab="collaboration"] .app-nav { left: 0; right: auto; top: 0; bottom: 0; width: 64px; height: 100%; grid-template-columns: 1fr; grid-template-rows: repeat(4,68px); align-content: start; padding-top: 14px; border-width: 0 1px 0 0; border-radius: 21px 0 0 21px; box-shadow: none; }
-  body[data-tab="collaboration"] .app-nav button { min-height: 64px; align-content: center; }
-  body[data-tab="collaboration"] .app-nav button i { top: 10px; right: 10px; }
-  body[data-tab="collaboration"] .workspace-view .app-header { margin-bottom: 12px; }
-  body[data-tab="collaboration"] .workspace-project-head { padding: 13px 14px; }
-  body[data-tab="collaboration"] .workspace-project-head h3 { margin-top: 10px; font-size: 20px; }
-  body[data-tab="collaboration"] .workspace-project-meta { position: static; width: 100%; justify-content: flex-start; margin-top: 10px; padding-top: 9px; }
-  body[data-tab="collaboration"] .workspace-project-meta b { margin-left: 0; }
-  body[data-tab="collaboration"] .workspace-avatar-stack, body[data-tab="collaboration"] .workspace-launch-track { display: none; }
-  body[data-tab="collaboration"] .workspace-tabs, body[data-tab="collaboration"] .workspace-mobile-content { display: none; }
-  body[data-tab="collaboration"] .workspace-desktop-grid { display: grid; grid-template-columns: minmax(145px,.8fr) minmax(280px,1.55fr) minmax(160px,.9fr); align-items: start; gap: 8px; margin-top: 10px; }
-  body[data-tab="collaboration"] .desktop-workspace-panel { min-width: 0; padding: 10px; border: 1px solid #dce2e9; border-radius: 14px; background: #fff; }
-  body[data-tab="collaboration"] .desktop-workspace-panel > header h3 { font-size: 15px; }
-  body[data-tab="collaboration"] .desktop-agent-panel { background: #fbfcfd; }
-  body[data-tab="collaboration"] .desktop-agent-panel .agent-proposal { margin-top: 0; }
-  body[data-tab="collaboration"] .desktop-records-panel .workspace-risk { margin-bottom: 0; }
-  body[data-tab="collaboration"] .desktop-records-panel .workspace-handoff { background: #f8f9fb; }
-}
-
-@media (min-width: 1000px) {
-  body[data-tab="collaboration"] { overflow: hidden; background: #eef1f5; }
-  body[data-tab="collaboration"]::before { opacity: .18; }
-  body[data-tab="collaboration"] .prototype-stage { min-height: 100vh; grid-template-columns: minmax(900px, 1180px); align-items: stretch; gap: 0; padding: 24px; }
-  body[data-tab="collaboration"] .phone-shell { width: min(1180px, calc(100vw - 48px)); min-height: 720px; height: calc(100vh - 48px); border: 1px solid #d5dce5; border-radius: 28px; background: #f8f9fb; box-shadow: 0 28px 80px rgba(31,48,70,.14); }
-  body[data-tab="collaboration"] .prototype-notes { display: none; }
-  body[data-tab="collaboration"] .screen { height: 100%; padding: 0; overflow-y: auto; }
-  body[data-tab="collaboration"] .view { min-height: 100%; padding: 27px 28px 32px 116px; }
-  body[data-tab="collaboration"] .app-nav { left: 0; right: auto; top: 0; bottom: 0; width: 88px; height: 100%; grid-template-columns: 1fr; grid-template-rows: repeat(4, 82px); align-content: start; padding-top: 22px; border-width: 0 1px 0 0; border-radius: 27px 0 0 27px; box-shadow: none; }
-  body[data-tab="collaboration"] .app-nav button { min-height: 78px; align-content: center; }
-  body[data-tab="collaboration"] .app-nav button i { top: 16px; right: 18px; }
-  body[data-tab="collaboration"] .workspace-view .app-header { margin-bottom: 18px; }
-  body[data-tab="collaboration"] .workspace-project-head { padding: 16px 18px; }
-  body[data-tab="collaboration"] .workspace-project-head h3 { margin-top: 13px; font-size: 23px; }
-  body[data-tab="collaboration"] .workspace-project-meta { position: absolute; right: 18px; bottom: 18px; width: 310px; justify-content: flex-end; margin: 0; padding: 0; border: 0; }
-  body[data-tab="collaboration"] .workspace-project-meta b { margin-left: 8px; }
-  body[data-tab="collaboration"] .workspace-avatar-stack, body[data-tab="collaboration"] .workspace-launch-track { display: none; }
-  body[data-tab="collaboration"] .workspace-tabs, body[data-tab="collaboration"] .workspace-mobile-content { display: none; }
-  body[data-tab="collaboration"] .workspace-desktop-grid { display: grid; grid-template-columns: 240px minmax(370px, 1fr) 250px; align-items: start; gap: 14px; margin-top: 14px; }
-  body[data-tab="collaboration"] .desktop-workspace-panel { min-width: 0; padding: 15px; border: 1px solid #dce2e9; border-radius: 20px; background: #fff; }
-  body[data-tab="collaboration"] .desktop-agent-panel { background: #fbfcfd; }
-  body[data-tab="collaboration"] .desktop-agent-panel .agent-proposal { margin-top: 0; }
-  body[data-tab="collaboration"] .workspace-desktop-grid .assignment-reason, body[data-tab="collaboration"] .workspace-desktop-grid .assignment-risk { display: block; }
-  body[data-tab="collaboration"] .desktop-records-panel .workspace-risk { margin-bottom: 0; }
-  body[data-tab="collaboration"] .desktop-records-panel .workspace-handoff { background: #f8f9fb; }
-}
-
 @media (max-width: 850px) {
   html, body { height: 100%; overflow: hidden; }
   .prototype-stage { display: block; min-height: 100%; height: 100%; padding: 0; }
@@ -1356,6 +1308,236 @@ body[data-source="android-app"] .toast { top: max(44px, calc(var(--rally-safe-ar
   .stamp span, .stamp small { font-size: var(--type-micro); }
   .toast { max-width: calc(100vw - 32px); font-size: 13px; line-height: 1.4; text-align: center; }
 }
+
+/*
+ * Desktop collaboration console.
+ * Pointer capability is intentional: the Codex desktop panel can be narrower
+ * than a tablet, but it is still a mouse-and-keyboard workspace.
+ */
+@media (min-width: 520px) and (hover: hover) and (pointer: fine) {
+  html, body { height: 100%; overflow: hidden; }
+  .desktop-app-shell { position: relative; z-index: 1; width: 100%; min-height: 100%; height: 100%; }
+  .desktop-app-frame { position: relative; width: 100vw; min-height: 100vh; height: 100vh; overflow: hidden; background: #f7f9fc; }
+  .desktop-screen { height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+  .desktop-screen::-webkit-scrollbar { display: none; }
+  .desktop-screen:has(> .recommendation-view) { overflow-y: hidden; overscroll-behavior: none; }
+  .desktop-screen > .view { min-height: 100%; padding: 18px 16px 38px 86px; }
+  .desktop-screen > .view:not(.workspace-view) { max-width: 900px; margin: 0 auto; }
+  body[data-tab="collaboration"] { background: #edf1f6; }
+  body[data-tab="collaboration"]::before { opacity: .12; }
+  body[data-tab="collaboration"] .desktop-screen > .view { max-width: none; }
+
+  .desktop-app-nav {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 70px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 14px 8px 12px;
+    border: 0;
+    border-right: 1px solid #dce3ec;
+    border-radius: 0;
+    background: #fbfcfe;
+    box-shadow: 8px 0 24px rgba(33, 51, 74, .035);
+    backdrop-filter: none;
+  }
+  .desktop-nav-brand { height: 48px; display: grid; place-items: center; margin-bottom: 5px; }
+  .desktop-nav-brand > img { display: block; width: 36px; height: 36px; object-fit: contain; }
+  .desktop-nav-brand strong,
+  .desktop-nav-brand small { display: none; }
+  .desktop-nav-items { display: grid; gap: 5px; }
+  .desktop-app-nav button { position: relative; min-width: 0; min-height: 58px; display: grid; grid-template-rows: 22px auto; align-content: center; justify-items: center; gap: 4px; padding: 6px 3px; border: 0; border-radius: 10px; background: transparent; color: #7b8796; cursor: pointer; transition: color .18s ease, background-color .18s ease; }
+  .desktop-app-nav button:hover { background: #f0f4f9; color: #314152; }
+  .desktop-app-nav button.active { background: #eaf2ff; color: #245fc8; }
+  .desktop-app-nav button > span { width: 22px; height: 22px; display: grid; place-items: center; }
+  .desktop-app-nav button svg { width: 21px; height: 21px; }
+  .desktop-app-nav button small { font-size: 10px; font-weight: 720; }
+  .desktop-app-nav button > i { position: absolute; top: 4px; right: 4px; min-width: 15px; height: 15px; display: grid; place-items: center; border-radius: 99px; background: var(--brand); color: #fff; font-size: 8px; font-style: normal; }
+  .desktop-nav-agent { width: 38px; min-height: 38px; display: grid; place-items: center; margin: auto auto 0; border: 1px solid #d8e2dc; border-radius: 11px; background: #f2f8f5; }
+  .desktop-nav-agent > i { width: 8px; height: 8px; border-radius: 50%; background: #2b8a61; box-shadow: 0 0 0 4px rgba(43,138,97,.12); }
+  .desktop-nav-agent > span { display: none; }
+
+  body[data-tab="collaboration"] .workspace-view .app-header { min-height: 54px; margin: 0; padding: 0 2px 14px; border-bottom: 1px solid #dbe2eb; }
+  body[data-tab="collaboration"] .app-section-title { display: grid; gap: 3px; }
+  body[data-tab="collaboration"] .app-section-title::before { content: "PROJECT SPACE"; color: #7a8794; font-family: "SFMono-Regular", Consolas, monospace; font-size: 10px; font-weight: 760; letter-spacing: .11em; }
+  body[data-tab="collaboration"] .app-section-title strong { font-size: 18px; letter-spacing: -.025em; }
+  body[data-tab="collaboration"] .context-switch-trigger { width: min(164px, 40vw); height: 40px; border-radius: 10px; background: transparent; }
+  body[data-tab="collaboration"] .context-switch-copy small { font-size: 10px; }
+  body[data-tab="collaboration"] .context-switch-copy strong { font-size: 11px; }
+
+  body[data-tab="collaboration"] .workspace-project-head { overflow: visible; padding: 18px 2px 17px; border: 0; border-radius: 0; background: transparent; }
+  body[data-tab="collaboration"] .workspace-project-top { align-items: center; }
+  body[data-tab="collaboration"] .workspace-live,
+  body[data-tab="collaboration"] .workspace-room-label { font-size: 10px; }
+  body[data-tab="collaboration"] .workspace-project-head h3 { max-width: none; margin: 12px 0 6px; font-size: 27px; line-height: 1.08; letter-spacing: -.045em; }
+  body[data-tab="collaboration"] .workspace-project-head > p { max-width: 620px; font-size: 13px; line-height: 1.5; }
+  body[data-tab="collaboration"] .workspace-project-meta { position: static; width: auto; justify-content: flex-start; margin-top: 13px; padding: 0; border: 0; font-size: 11px; }
+  body[data-tab="collaboration"] .workspace-project-meta strong,
+  body[data-tab="collaboration"] .workspace-project-meta small,
+  body[data-tab="collaboration"] .workspace-project-meta > b { font-size: 10px; }
+  body[data-tab="collaboration"] .workspace-project-meta > b { margin-left: 4px; padding-left: 12px; border-left: 1px solid #d9e0e8; }
+  body[data-tab="collaboration"] .workspace-avatar-stack,
+  body[data-tab="collaboration"] .workspace-launch-track { display: none; }
+  body[data-tab="collaboration"] .workspace-launch-summary { margin-top: 14px; padding-top: 11px; border-top: 1px solid #e0e6ed; }
+  body[data-tab="collaboration"] .workspace-launch-summary span,
+  body[data-tab="collaboration"] .workspace-launch-summary small { font-size: 10px; }
+  body[data-tab="collaboration"] .workspace-launch-summary strong { font-size: 11px; }
+  body[data-tab="collaboration"] .workspace-launch-summary > i { height: 3px; border-radius: 0; }
+  body[data-tab="collaboration"] .workspace-tabs,
+  body[data-tab="collaboration"] .workspace-mobile-content { display: none; }
+
+  body[data-tab="collaboration"] .workspace-desktop-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "agent agent"
+      "members records";
+    align-items: stretch;
+    gap: 0;
+    overflow: hidden;
+    margin-top: 0;
+    border: 1px solid #d6dee8;
+    border-radius: 13px;
+    background: #fff;
+    box-shadow: 0 18px 36px rgba(34, 52, 75, .10);
+  }
+  body[data-tab="collaboration"] .desktop-workspace-panel { min-width: 0; padding: 16px; border: 0; border-radius: 0; background: #fff; }
+  body[data-tab="collaboration"] .desktop-members-panel { grid-area: members; border-right: 1px solid #e0e6ed; }
+  body[data-tab="collaboration"] .desktop-agent-panel { position: relative; grid-area: agent; border-bottom: 1px solid #dbe2eb; background: #fbfdff; }
+  body[data-tab="collaboration"] .desktop-agent-panel::after { content: ""; position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; background: linear-gradient(90deg, var(--brand-action) 0 34%, transparent 34%); pointer-events: none; }
+  body[data-tab="collaboration"] .desktop-records-panel { grid-area: records; }
+  body[data-tab="collaboration"] .desktop-workspace-panel > header { position: relative; margin-bottom: 14px; padding-bottom: 11px; border-bottom: 1px solid #e2e7ed; }
+  body[data-tab="collaboration"] .desktop-workspace-panel > header .micro-label { font-size: 10px; }
+  body[data-tab="collaboration"] .desktop-workspace-panel > header h3 { margin: 5px 0 0; font-size: 17px; line-height: 1.2; }
+  body[data-tab="collaboration"] .desktop-workspace-panel > header > span { position: absolute; top: 0; right: 0; max-width: 48%; color: #7a8693; font-size: 10px; line-height: 1.35; text-align: right; }
+
+  body[data-tab="collaboration"] .desktop-agent-panel .agent-proposal { overflow: visible; margin: 0; padding: 0 0 0 15px; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+  body[data-tab="collaboration"] .desktop-agent-panel .agent-proposal::before { width: 2px; border-radius: 99px; }
+  body[data-tab="collaboration"] .agent-proposal > header h3 { font-size: 18px; }
+  body[data-tab="collaboration"] .agent-proposal > header > span { font-size: 10px; }
+  body[data-tab="collaboration"] .agent-proposal > p { margin: 9px 0 12px; font-size: 12px; line-height: 1.5; }
+  body[data-tab="collaboration"] .assignment-list article,
+  body[data-tab="collaboration"] .live-task-list article { grid-template-columns: 24px minmax(0,1fr) auto; gap: 9px; padding: 11px 0; }
+  body[data-tab="collaboration"] .assignment-list article > b,
+  body[data-tab="collaboration"] .live-task-list article > b { font-size: 10px; }
+  body[data-tab="collaboration"] .assignment-list strong,
+  body[data-tab="collaboration"] .live-task-list strong { font-size: 13px; line-height: 1.35; }
+  body[data-tab="collaboration"] .assignment-list small,
+  body[data-tab="collaboration"] .live-task-list small,
+  body[data-tab="collaboration"] .live-task-list em { font-size: 10px; line-height: 1.45; }
+  body[data-tab="collaboration"] .assignment-list button,
+  body[data-tab="collaboration"] .assignment-list em { font-size: 10px; }
+  body[data-tab="collaboration"] .desktop-task-board { margin-top: 18px; padding-top: 14px; border-top: 1px solid #dfe5ec; }
+  body[data-tab="collaboration"] .desktop-task-board h4 { font-size: 14px; }
+  body[data-tab="collaboration"] .desktop-task-board > header span { font-size: 10px; }
+
+  body[data-tab="collaboration"] .workspace-members { border: 0; border-radius: 0; }
+  body[data-tab="collaboration"] .workspace-members article { grid-template-columns: 38px minmax(0,1fr) auto; gap: 8px; padding: 10px 0; }
+  body[data-tab="collaboration"] .workspace-members .glyph-sm,
+  body[data-tab="collaboration"] .workspace-members .member-monogram { width: 36px; height: 36px; }
+  body[data-tab="collaboration"] .workspace-members strong { font-size: 12px; }
+  body[data-tab="collaboration"] .workspace-members small { font-size: 10px; }
+  body[data-tab="collaboration"] .workspace-members em { padding: 4px 5px; border-radius: 5px; font-size: 9px; }
+  body[data-tab="collaboration"] .workspace-member-chat { min-width: 44px; min-height: 34px; padding: 0 8px; border-radius: 8px; font-size: 10px; }
+  body[data-tab="collaboration"] .workspace-governance,
+  body[data-tab="collaboration"] .workspace-handoff,
+  body[data-tab="collaboration"] .record-policy { margin-top: 12px; padding: 12px 0 0; border: 0; border-top: 1px solid #e2e7ed; border-radius: 0; background: transparent; }
+  body[data-tab="collaboration"] .workspace-governance span,
+  body[data-tab="collaboration"] .workspace-handoff > div:first-child span,
+  body[data-tab="collaboration"] .record-policy b { font-size: 11px; }
+  body[data-tab="collaboration"] .workspace-governance p,
+  body[data-tab="collaboration"] .workspace-handoff > div:first-child p,
+  body[data-tab="collaboration"] .record-policy p { font-size: 10px; line-height: 1.55; }
+  body[data-tab="collaboration"] .workspace-handoff button { min-height: 34px; border-radius: 7px; font-size: 10px; }
+  body[data-tab="collaboration"] .workspace-timeline strong { font-size: 12px; line-height: 1.35; }
+  body[data-tab="collaboration"] .workspace-timeline small { font-size: 10px; line-height: 1.4; }
+  body[data-tab="collaboration"] .workspace-risk { margin-top: 12px; padding: 10px 11px; border-radius: 0; }
+  body[data-tab="collaboration"] .workspace-risk span { font-size: 10px; }
+  body[data-tab="collaboration"] .workspace-risk p,
+  body[data-tab="collaboration"] .workspace-risk strong { font-size: 10px; line-height: 1.5; }
+}
+
+@media (min-width: 760px) and (hover: hover) and (pointer: fine) {
+  .desktop-screen > .view { padding-left: 198px; }
+  .desktop-app-nav { width: 178px; padding: 18px 12px 14px; }
+  .desktop-nav-brand { height: 58px; grid-template-columns: 38px minmax(0,1fr) auto; justify-items: start; gap: 9px; padding: 0 8px; }
+  .desktop-nav-brand > img { width: 36px; height: 36px; }
+  .desktop-nav-brand strong { display: block; font-size: 15px; letter-spacing: -.025em; }
+  .desktop-nav-brand small { display: block; color: #7e8995; font-size: 10px; }
+  .desktop-app-nav button { min-height: 48px; grid-template-columns: 28px 1fr; grid-template-rows: 1fr; align-items: center; justify-items: start; gap: 9px; padding: 0 11px; }
+  .desktop-app-nav button small { font-size: 12px; }
+  .desktop-app-nav button > i { top: 8px; right: 8px; }
+  .desktop-nav-agent { width: auto; min-height: 54px; grid-template-columns: 10px 1fr; justify-items: start; gap: 10px; margin: auto 3px 0; padding: 9px 10px; }
+  .desktop-nav-agent > span { display: grid; gap: 2px; }
+  .desktop-nav-agent small { color: #6f7e75; font-family: "SFMono-Regular", Consolas, monospace; font-size: 8px; letter-spacing: .07em; }
+  .desktop-nav-agent strong { color: #245e46; font-size: 11px; }
+  body[data-tab="collaboration"] .workspace-project-head { display: grid; grid-template-columns: minmax(0,1fr) minmax(220px, .6fr); column-gap: 24px; }
+  body[data-tab="collaboration"] .workspace-project-top,
+  body[data-tab="collaboration"] .workspace-project-head h3,
+  body[data-tab="collaboration"] .workspace-project-head > p { grid-column: 1; }
+  body[data-tab="collaboration"] .workspace-project-meta { grid-column: 1; }
+  body[data-tab="collaboration"] .workspace-launch-summary { grid-column: 2; grid-row: 1 / span 4; align-content: center; margin: 0; padding: 4px 0 4px 20px; border-top: 0; border-left: 1px solid #dce3eb; }
+}
+
+@media (min-width: 1000px) and (hover: hover) and (pointer: fine) {
+  .desktop-screen > .view { padding: 22px 28px 44px 236px; }
+  .desktop-app-nav { width: 208px; padding: 20px 15px 16px; }
+  .desktop-nav-brand { grid-template-columns: 40px minmax(0,1fr) auto; padding: 0 10px; }
+  body[data-tab="collaboration"] .workspace-project-head h3 { font-size: 31px; }
+  body[data-tab="collaboration"] .workspace-desktop-grid {
+    grid-template-columns: 230px minmax(360px, 1fr) 245px;
+    grid-template-areas: "members agent records";
+  }
+  body[data-tab="collaboration"] .desktop-workspace-panel { padding: 18px; }
+  body[data-tab="collaboration"] .desktop-members-panel { border-right: 1px solid #dbe2eb; }
+  body[data-tab="collaboration"] .desktop-agent-panel { border-right: 1px solid #dbe2eb; border-bottom: 0; }
+  body[data-tab="collaboration"] .desktop-agent-panel::after { top: 0; right: -1px; bottom: 0; left: auto; width: 2px; height: auto; background: linear-gradient(180deg, var(--brand-action) 0 36%, transparent 36%); }
+}
+
+/* Shared control outline follows component rules to avoid doubled inset strokes. */
+.mobile-project-description { display: none; }
+.mobile-task-details summary, .mobile-plan-context summary { min-height: 44px; display: flex; align-items: center; color: #286edb; font-size: 13px; cursor: pointer; list-style: none; }
+.mobile-task-details summary::after, .mobile-plan-context summary::after { content: "+"; margin-left: auto; padding-left: 12px; }
+.mobile-task-details[open] summary::after, .mobile-plan-context[open] summary::after { content: "−"; }
+.mobile-task-details p, .mobile-task-details small, .mobile-plan-context p { display: block; margin: 8px 0; color: #687687; font-size: 13px; line-height: 1.6; }
+.mobile-task-pack .live-task-list { gap: 0; }
+.mobile-task-pack .live-task-list article { grid-template-columns: minmax(0,1fr) auto; padding: 16px 0; border: 0; border-bottom: 1px solid #e0e5eb; border-radius: 0; }
+.mobile-task-pack .live-task-list article > b { display: none; }
+.mobile-task-pack .live-task-list article strong { font-size: 16px; line-height: 1.4; }
+.mobile-task-pack .live-task-list article em { grid-row: 2; color: #687687; font-size: 13px; }
+.mobile-task-pack .live-task-list article button { min-height: 44px; font-size: 13px; }
+.mobile-task-pack .live-task-list article > span { min-width: 0; }
+.mobile-task-pack .mobile-plan-source, .mobile-task-pack .mobile-work-note { color: #687687; font-size: 12px; line-height: 1.6; }
+.mobile-task-pack > header h3, .mobile-next-step h3 { font-size: 20px; }
+.mobile-task-pack .live-plan-confirmation { justify-content: flex-end; }
+@media (max-width: 519px), (pointer: coarse) {
+  .workspace-project-head > p, .workspace-room-label, .workspace-project-meta small, .workspace-project-meta > b,
+  .workspace-launch-summary small, .workspace-launch-summary > div > span,
+  .workspace-mobile-content .micro-label, .workspace-action-facts { display: none; }
+  .mobile-project-description { display: block; }
+  .mobile-project-description summary { min-height: 44px; display: flex; align-items: center; color: #687687; font-size: 13px; cursor: pointer; }
+  .mobile-project-description p { color: #687687; font-size: 14px; line-height: 1.6; }
+  .workspace-project-head { padding: 0 0 16px; border: 0; border-bottom: 1px solid #e0e5eb; border-radius: 0; background: transparent; box-shadow: none; }
+  .workspace-project-head h3 { margin: 12px 0 0; font-size: 24px; line-height: 1.3; }
+  .workspace-project-meta { margin-top: 4px; }
+  .workspace-launch-summary { margin-top: 12px; padding-top: 0; border: 0; }
+  .workspace-launch-summary strong { font-size: 13px; }
+  .workspace-next-action, .workspace-started-card, .workspace-mobile-content .agent-proposal, .workspace-mobile-content .launch-pack { border: 1px solid #e0e5eb; border-radius: 16px; background: #fff; box-shadow: none; padding: 16px; }
+  .workspace-next-action h3, .workspace-started-card h3, .workspace-mobile-content .agent-proposal h3 { margin: 0; font-size: 20px; }
+  .workspace-next-action p, .workspace-started-card p { font-size: 14px; line-height: 1.6; }
+  .workspace-mobile-content .assignment-list article { padding: 16px 0; border-radius: 0; border: 0; border-bottom: 1px solid #e0e5eb; background: transparent; }
+  .workspace-mobile-content .assignment-list article strong { font-size: 15px; line-height: 1.4; }
+  .workspace-mobile-content .assignment-list article small { font-size: 13px; line-height: 1.5; }
+  .workspace-mobile-content .assignment-list article button { min-height: 44px; font-size: 13px; }
+}
+
+.discovery-filter-trigger, .context-switch-trigger, .filter-sheet-close,
+.profile-settings-head > button, .context-switcher-head > button, .profile-block-sheet-head > button,
+.onboarding-back { border: 1px solid #d8dfe7; }
+.filter-sheet-close, .profile-settings-head > button, .profile-block-sheet-head > button { box-shadow: none; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }

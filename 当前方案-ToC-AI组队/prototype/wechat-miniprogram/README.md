@@ -2,6 +2,10 @@
 
 这是 COSPAN 的原生微信小程序入口，面向中国现场活动和冷启动体验。它不是 H5 `web-view` 外壳，直接调用现有 COSPAN 腾讯云后端。
 
+## 统一设计基准
+
+唯一设计规范是 [移动端视觉与字体规范](../../10-移动端视觉与字体规范.md)，小程序不另做一套。迁移时对照手机 Web 的最终响应式样式与真机截图；附近、名册按第 14.1.1 节同步。375px 视口下正文 14px 对应 28rpx，中文辅助文字至少 24rpx，触控区至少 88rpx。
+
 ## 当前可体验的闭环
 
 1. 微信一键登录，无需手输账号或现场访问码。
@@ -23,7 +27,7 @@
 ## 开发者工具运行
 
 1. 打开微信开发者工具，导入本目录。
-2. `project.config.json` 当前使用 `touristappid`，可先预览页面结构；需要调用 `wx.login` 联调时，替换为你刚注册的真实小程序 AppID，并同步把腾讯云 `WECHAT_MINI_PROGRAM_APP_ID` / `WECHAT_MINI_PROGRAM_APP_SECRET` 换成同一小程序的配置。`touristappid` 不产生可迁移的真实用户；正式对外后不应再更换 AppID，否则 OpenID 主体会变化，需要单独的账号迁移方案。
+2. `project.config.json` 已使用 COSPAN 真实小程序 AppID `wx5b3e0ca7960fe4d3`。腾讯云 `WECHAT_MINI_PROGRAM_APP_ID` / `WECHAT_MINI_PROGRAM_APP_SECRET` 必须配置为同一小程序；AppSecret 只存放在服务器环境文件中。正式对外后不应再更换 AppID，否则 OpenID 主体会变化，需要单独的账号迁移方案。
 3. 开发配置已关闭“校验合法域名”，开发 API 指向 `https://101.43.172.166`。这仅适合开发者工具；真机预览、体验版和正式版仍受微信合法请求域名和 TLS 限制。
 4. 腾讯云后端设置 `WECHAT_MINI_PROGRAM_APP_ID` 和 `WECHAT_MINI_PROGRAM_APP_SECRET`，重启服务后确认 `/health` 返回 `wechat_mini_login=ready`。
 

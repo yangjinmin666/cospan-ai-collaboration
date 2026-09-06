@@ -1,0 +1,32 @@
+@import "../../styles/ui-icons.wxss";
+:host { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; }
+.scope-overlay { position: fixed; z-index: 2000; top: 0; right: 0; bottom: 0; left: 0; display: flex; align-items: flex-end; }
+.scope-backdrop { position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: rgba(20,28,38,.30); }
+.scope-sheet { position: relative; box-sizing: border-box; width: 100%; max-height: min(70vh, 1120rpx); overflow-y: auto; padding: 0 32rpx calc(32rpx + env(safe-area-inset-bottom)); border-radius: 64rpx 64rpx 0 0; background: #f7f8fa; color: #31404f; box-shadow: 0 -40rpx 120rpx rgba(20, 30, 26, .20); }
+.scope-head { display: flex; align-items: center; gap: 24rpx; padding: 34rpx 0 24rpx; }
+.scope-heading { flex: 1; min-width: 0; }
+.scope-caption { margin-bottom: 4rpx; color: #7a8794; font-size: 20rpx; font-weight: 700; line-height: 1.4; letter-spacing: 2rpx; }
+.scope-title { font-size: 40rpx; line-height: 1.2; font-weight: 750; letter-spacing: -1.6rpx; }
+.scope-close, .scope-option, .scope-manage { box-sizing: border-box; height: auto; margin: 0; border: 0; font-family: inherit; line-height: normal; }
+.scope-close::after, .scope-option::after, .scope-manage::after { border: 0; }
+.scope-close { flex: 0 0 88rpx; min-width: 88rpx; max-width: 88rpx; width: 88rpx; height: 88rpx; display: flex; align-items: center; justify-content: center; padding: 0; border: 2rpx solid #d8dfe7; border-radius: 50%; background: #e9edf2; color: #31404f; font-size: 42rpx; line-height: 1; }
+.scope-options { box-sizing: border-box; width: 100%; min-width: 100%; display: flex; flex-direction: column; align-items: stretch; gap: 16rpx; padding: 4rpx 0 0; }
+.scope-option { position: relative; box-sizing: border-box; width: 100%; min-width: 100%; max-width: none; align-self: stretch; display: flex; align-items: center; gap: 20rpx; min-height: 136rpx; overflow: hidden; padding: 18rpx 20rpx; border: 1rpx solid #dce2e9; border-radius: 32rpx; background: #fff; text-align: left; }
+.scope-option.selected { border-color: #b8cdf1; background: #f4f7fd; }
+.scope-option.selected::before { content: ""; position: absolute; left: 0; top: 20rpx; bottom: 20rpx; width: 5rpx; border-radius: 0 5rpx 5rpx 0; background: #347cf8; }
+.scope-option.is-disabled { opacity: .48; }
+.scope-copy { min-width: 0; flex: 1 1 0; display: flex; flex-direction: column; gap: 6rpx; }
+.scope-name { display: block; width: 100%; overflow: hidden; color: #31404f; font-size: 26rpx; font-weight: 750; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.scope-detail { display: block; color: #75818e; font-size: 24rpx; line-height: 1.42; }
+.scope-check { flex: 0 0 48rpx; width: 48rpx; height: 48rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #81909f; font-size: 26rpx; font-weight: 800; line-height: 1; }
+.selected .scope-check { background: #347cf8; color: #fff; }
+.scope-mark { position: relative; flex: 0 0 76rpx; width: 76rpx; height: 76rpx; border: 1rpx solid #dde4ec; border-radius: 24rpx; background: #f5f7fa; }
+.event-outline { position: absolute; left: 15rpx; top: 16rpx; width: 36rpx; height: 38rpx; border: 3rpx solid #344454; border-radius: 8rpx; }
+.event-outline::after { content: ""; position: absolute; top: 10rpx; left: 7rpx; right: 7rpx; height: 3rpx; background: #344454; box-shadow: 0 11rpx 0 #abb5c0; }
+.mark-dot { position: absolute; right: 8rpx; top: 8rpx; width: 12rpx; height: 12rpx; border: 3rpx solid #f5f7fa; border-radius: 50%; background: #347cf8; }
+.is-nearby { border-radius: 50%; }
+.nearby-ring { position: absolute; inset: 12rpx; border: 3rpx solid #aab4bf; border-radius: 50%; }
+.nearby-core { position: absolute; inset: 27rpx; border-radius: 50%; background: #347cf8; }
+.scope-note { margin: 22rpx 4rpx 0; color: #6f7d8b; font-size: 24rpx; line-height: 1.5; }
+.scope-empty { padding: 20rpx 4rpx; color: #6f7d8b; font-size: 24rpx; line-height: 1.5; }
+.scope-manage { width: 100%; min-width: 100%; max-width: 100%; min-height: 88rpx; display: flex; align-items: center; justify-content: space-between; padding: 0 4rpx; margin-top: 14rpx; background: transparent; color: #285fae; font-size: 26rpx; font-weight: 760; line-height: 1.5; }

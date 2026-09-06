@@ -1,0 +1,23 @@
+/* Shared geometry lives in mobile-demo/assets/ui-icons.mjs. */
+.ui-icon { display: block; flex: 0 0 48rpx; width: 48rpx; height: 48rpx; }
+.ui-icon-solid { flex-basis: 42rpx; width: 42rpx; height: 42rpx; }
+button.icon-button.icon-button {
+  box-sizing: border-box;
+  flex: 0 0 88rpx;
+  width: 88rpx;
+  min-width: 88rpx;
+  max-width: 88rpx;
+  height: 88rpx;
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 2rpx solid #d8dfe7;
+  background: #fff;
+  color: #475463;
+  line-height: 1;
+}
+button.icon-button::after { border: 0; }
+button.settings-trigger.icon-button { border-radius: 50%; box-shadow: 0 18rpx 48rpx rgba(31,48,70,.13); }

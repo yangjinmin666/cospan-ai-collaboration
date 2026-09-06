@@ -1,0 +1,24 @@
+<view class="scope-overlay" wx:if="{{visible}}" catchtouchmove="preventScroll">
+  <view class="scope-backdrop" bindtap="close" aria-label="关闭发现范围选择" role="button"></view>
+  <view class="scope-sheet" role="dialog" aria-modal="true" aria-label="管理当前发现范围">
+    <view class="scope-head">
+      <view class="scope-heading"><view class="scope-caption">发现范围</view><view class="scope-title">你想在哪里发现人？</view></view>
+      <button class="scope-close" bindtap="close" aria-label="关闭发现范围选择"><image class="ui-icon" src="/assets/ui-close.svg" mode="aspectFit" /></button>
+    </view>
+    <view class="scope-options" role="radiogroup" aria-label="选择发现范围">
+      <button wx:for="{{events}}" wx:key="id" class="scope-option {{scope === 'event' && eventId === item.id ? 'selected' : ''}}" data-event-id="{{item.id}}" bindtap="selectEvent" role="radio" aria-checked="{{scope === 'event' && eventId === item.id}}">
+        <view class="scope-mark is-event" aria-hidden="true"><view class="event-outline"></view><view class="mark-dot"></view></view>
+        <view class="scope-copy"><text class="scope-name">{{item.name}}</text><text class="scope-detail">本场推荐、附近和授权名册</text></view>
+        <text class="scope-check" aria-hidden="true">{{scope === 'event' && eventId === item.id ? '✓' : '→'}}</text>
+      </button>
+      <view class="scope-empty" wx:if="{{!events.length}}">暂未读取到可选展会，请联网刷新页面后再试。</view>
+      <button class="scope-option {{scope === 'nearby' ? 'selected' : ''}} {{!events.length || !eventId ? 'is-disabled' : ''}}" disabled="{{!events.length || !eventId}}" bindtap="selectNearby" role="radio" aria-checked="{{scope === 'nearby'}}">
+        <view class="scope-mark is-nearby" aria-hidden="true"><view class="nearby-ring"></view><view class="nearby-core"></view></view>
+        <view class="scope-copy"><text class="scope-name">日常附近</text><text class="scope-detail">发现身边主动开放的人</text></view>
+        <text class="scope-check" aria-hidden="true">{{scope === 'nearby' ? '✓' : '→'}}</text>
+      </button>
+    </view>
+    <view class="scope-note">切换只影响发现结果，不会退出活动或删除关系。</view>
+    <button class="scope-manage" bindtap="manageVisibility"><text>管理公开范围</text><text aria-hidden="true">→</text></button>
+  </view>
+</view>

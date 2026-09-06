@@ -25,7 +25,8 @@ test("Agent requests can wait for the server's model timeout without slowing nor
 });
 
 test("timeout and offline failures remain distinguishable without leaking raw platform errors", async () => {
-  for (const [message, code] of [["request:fail timeout", "REQUEST_TIMEOUT"], ["request:fail connection", "NETWORK_ERROR"]]) {
+  for (const [message, code] of [["request:fail timeout", "REQUEST_TIMEOUT"], ["request:fail connection", "NETWORK_ERROR"],
+    ["request:fail url not in domain list", "DOMAIN_NOT_ALLOWED"], ["request:fail ssl hand shake error", "TLS_ERROR"]]) {
     const { api } = createRuntime({ baseUrl: "https://api.cospan.cn", wxApi: {
       getStorageSync: () => "test-session",
       request: ({ fail }) => fail({ errMsg: message }),

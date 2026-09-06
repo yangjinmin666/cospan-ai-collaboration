@@ -1,9 +1,16 @@
 /*
- * PROTOTYPE — throwaway mobile UI.
- * Three variants of the nearby-discovery experience, switchable via ?variant=.
+ * COSPAN prototype application.
+ * Desktop and mobile have isolated application shells while sharing domain state.
  */
 
 import { ApiError, RallyApiClient } from "./api-client.js";
+import { renderUiIcon } from "./assets/ui-icons.mjs?v=20260906-5";
+import { renderWorkbench } from "./shells/workbench.js?v=20260906-3";
+import {
+  DESKTOP_SHELL_QUERY,
+  renderDesktopShell,
+  renderMobileShell,
+} from "./shells/index.js";
 
 const currentUser = {
   id: "zhou",
@@ -698,6 +705,7 @@ const state = {
   draftVersion: 0,
   recommendationIndex: 0,
   workspaceSection: "overview",
+  workbench: { section: "tasks", layout: "list", filter: "all", taskId: null },
   workspaceStarted: false,
   workspaceSos: false,
   assignmentOverrides: {},
@@ -817,6 +825,11 @@ const state = {
 };
 
 const app = document.querySelector("#app");
+const desktopShellMedia = window.matchMedia(DESKTOP_SHELL_QUERY);
+
+function activeShellScreen() {
+  return document.querySelector('[data-app-shell="desktop"] .desktop-screen, [data-app-shell="mobile"] .screen');
+}
 
 function readVariant(discoveryScope = state.discoveryContext) {
   const key = new URLSearchParams(location.search).get("variant")?.toUpperCase();
@@ -1251,31 +1264,34 @@ function signalBars(level) {
 
 function render() {
   const overlayFocus = captureOverlayFocus();
+  const workbenchScroll = [".wb-main", ".wb-detail-body"].map(selector => [selector, document.querySelector(selector)?.scrollTop || 0]);
   const showsOnboarding = state.onboarding && liveAppReady();
+  const shellKind = desktopShellMedia.matches ? "desktop" : "mobile";
   document.body.dataset.variant = state.variant;
   document.body.dataset.scope = state.discoveryContext;
   document.body.dataset.flow = showsOnboarding ? "onboarding" : "product";
   document.body.dataset.tab = state.tab;
+  document.body.dataset.shell = shellKind;
   document.body.dataset.source = initialParams.get("source") === "android-app" ? "android-app" : "web";
-  const phone = `
-    <main class="prototype-stage">
-      <section class="phone-shell" aria-label="COSPAN 合拍手机端原型">
-        <div class="screen">
-          ${showsOnboarding ? renderOnboarding() : renderCurrentView()}
-        </div>
-        ${showsOnboarding || !liveAppReady() ? "" : renderAppNav()}
-      </section>
-      <aside class="prototype-notes">
-        <p class="eyebrow">${showsOnboarding ? "COSPAN / INTRO" : `COSPAN / MOBILE / ${state.variant}`}</p>
-        <h1>${showsOnboarding ? "四步完成自我介绍" : variantNames[state.variant]}</h1>
-        <p>${showsOnboarding ? "从公开主页和正在做的事开始，用最少输入组装一张可以被队友快速读懂的协作卡。" : variantDescription()}</p>
-        ${renderStateLedger()}
-      </aside>
-    </main>
-  `;
+  const content = showsOnboarding ? renderOnboarding() : renderCurrentView();
+  const navigation = showsOnboarding || !liveAppReady()
+    ? ""
+    : shellKind === "desktop"
+      ? renderDesktopAppNav()
+      : renderMobileAppNav();
+  const notes = `<aside class="prototype-notes">
+    <p class="eyebrow">${showsOnboarding ? "COSPAN / INTRO" : `COSPAN / MOBILE / ${state.variant}`}</p>
+    <h1>${showsOnboarding ? "四步完成自我介绍" : variantNames[state.variant]}</h1>
+    <p>${showsOnboarding ? "从公开主页和正在做的事开始，用最少输入组装一张可以被队友快速读懂的协作卡。" : variantDescription()}</p>
+    ${renderStateLedger()}
+  </aside>`;
+  const shell = shellKind === "desktop"
+    ? renderDesktopShell({ content, navigation })
+    : renderMobileShell({ content, navigation, notes });
 
-  app.innerHTML = `${phone}${renderOverlay()}${renderToast()}`;
+  app.innerHTML = `${shell}${renderOverlay()}${renderToast()}`;
   bindEvents();
+  workbenchScroll.forEach(([selector, top]) => { const pane = document.querySelector(selector); if (pane) pane.scrollTop = top; });
   syncOverlayAccessibility(overlayFocus);
   syncLivePresenceLifecycle();
 }
@@ -1304,7 +1320,7 @@ function renderOnboarding() {
   const steps = [renderOnboardingSources, renderOnboardingProject, renderOnboardingVibe, renderOnboardingIdentity];
   return `<div class="onboarding-shell view-c">
     <header class="onboarding-header">
-      <button class="onboarding-back" data-action="onboarding-back" aria-label="返回">${state.onboardingStep ? "←" : "×"}</button>
+      <button class="onboarding-back" data-action="onboarding-back" aria-label="返回">${renderUiIcon(state.onboardingStep ? "back" : "close")}</button>
       <div class="onboarding-progress" aria-label="第 ${state.onboardingStep + 1} 步，共 4 步"><span style="width:${(state.onboardingStep + 1) * 25}%"></span></div>
       <strong>${state.onboardingStep + 1} / 4</strong>
     </header>
@@ -1507,16 +1523,16 @@ function commonHeader(title = "发现", utility = null) {
   const activeContext = activeExhibition();
   const contextLabel = activeContext?.name || "日常附近";
   const contextSwitcher = `<button class="context-switch-trigger is-${activeContext ? "event" : "nearby"}" data-action="open-context-switcher" aria-label="切换发现范围，当前为 ${contextLabel}" title="当前范围：${contextLabel}">
-    <span class="context-switch-glyph" aria-hidden="true"><i></i><b></b></span>
+    <span class="context-switch-glyph" aria-hidden="true">${renderUiIcon("event")}</span>
     <span class="context-switch-copy"><small>当前范围</small><strong>${escapeHtml(contextLabel)}</strong></span>
   </button>`;
   const utilityButton = utility === "filters"
     ? `<button class="discovery-filter-trigger ${filterCount ? "is-filtered" : ""}" data-action="open-discovery-filters" aria-label="设置筛选偏好${filterCount ? `，已启用 ${filterCount} 项` : ""}">
-        <span aria-hidden="true"><i></i><i></i><i></i></span>${filterCount ? `<b>${filterCount}</b>` : ""}
+        ${renderUiIcon("filter")}${filterCount ? `<b>${filterCount}</b>` : ""}
       </button>`
     : utility === "settings"
       ? `<button class="profile-settings-trigger" data-action="open-profile-settings" aria-label="打开设置">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.5A3.5 3.5 0 1 0 12 15.5 3.5 3.5 0 0 0 12 8.5Zm8.1 4.7v-2.4l-2.2-.7a7 7 0 0 0-.7-1.7l1.1-2-1.7-1.7-2 1.1a7 7 0 0 0-1.7-.7L12.2 3H9.8l-.7 2.2a7 7 0 0 0-1.7.7l-2-1.1-1.7 1.7 1.1 2a7 7 0 0 0-.7 1.7l-2.2.7v2.4l2.2.7a7 7 0 0 0 .7 1.7l-1.1 2 1.7 1.7 2-1.1a7 7 0 0 0 1.7.7l.7 2.2h2.4l.7-2.2a7 7 0 0 0 1.7-.7l2 1.1 1.7-1.7-1.1-2a7 7 0 0 0 .7-1.7l2.2-.7Z"/></svg>
+          ${renderUiIcon("settings")}
         </button>`
       : "";
   const headerIdentity = title === "发现"
@@ -1539,7 +1555,7 @@ function renderContextSwitcherSheet() {
     <section class="bottom-sheet context-switcher-sheet" role="dialog" aria-modal="true" aria-label="管理当前发现范围">
       <header class="context-switcher-head">
         <div><p class="micro-label">发现范围</p><h3>你想在哪里发现人？</h3></div>
-        <button data-action="close-context-switcher" aria-label="关闭发现范围选择">×</button>
+        <button data-action="close-context-switcher" aria-label="关闭发现范围选择">${renderUiIcon("close")}</button>
       </header>
       <div class="context-options" role="radiogroup" aria-label="选择发现范围">
         <button class="context-option ${activeContext ? "selected" : ""}" data-action="select-discovery-context" data-context-scope="event" role="radio" aria-checked="${Boolean(activeContext)}" ${eventDisabled ? "disabled" : ""}>
@@ -1605,9 +1621,9 @@ function renderVariantA() {
         </article>
       </section>
       <section class="recommendation-actions" aria-label="推荐操作">
-        <button class="recommendation-dismiss" data-action="dismiss-recommendation" data-person="${person.id}" aria-label="暂不看 ${person.name}"><span>×</span><small>暂不看</small></button>
-        <button class="recommendation-detail" data-action="open-person" data-person="${person.id}" aria-label="查看 ${person.name} 的完整信息"><span>•••</span><small>看详情</small></button>
-        <button class="recommendation-like" data-action="like-recommendation" data-person="${person.id}" aria-label="向 ${person.name} 表达想认识"><span>认识</span><small>想认识</small></button>
+        <button class="recommendation-dismiss" data-action="dismiss-recommendation" data-person="${person.id}" aria-label="暂不看 ${person.name}"><span>${renderUiIcon("close")}</span><small>暂不看</small></button>
+        <button class="recommendation-detail" data-action="open-person" data-person="${person.id}" aria-label="查看 ${person.name} 的完整信息"><span>${renderUiIcon("details")}</span><small>看详情</small></button>
+        <button class="recommendation-like" data-action="like-recommendation" data-person="${person.id}" aria-label="向 ${person.name} 表达想认识"><span>${renderUiIcon("wave")}</span><small>想认识</small></button>
       </section>
       <section class="recommendation-progress" aria-label="推荐浏览进度">
         ${recommendationPool.map((item, index) => `<i class="${index === currentIndex ? "active" : ""}" title="${item.name}"></i>`).join("")}
@@ -1918,6 +1934,57 @@ function renderCollaboration() {
   return renderWorkspace(joinedPeople);
 }
 
+function renderProjectWorkbench(project, room, joinedPeople = []) {
+  const live = state.live.enabled;
+  const latest = joinedPeople.at(-1);
+  const pack = room?.starter_pack;
+  const actionHtml = (task) => {
+    if (!live) {
+      if (state.acceptedTasks.includes(task.id)) return '<span>我负责</span>';
+      return `<button data-action="accept-workbench-task" data-task-id="${escapeHtml(task.id)}">${taskOwner(task) === currentUser.name ? "接受建议" : "我来负责"}</button>`;
+    }
+    const action = liveTaskAction(task, room);
+    return action ? `<button data-action="live-task-action" data-task-id="${escapeHtml(task.id)}" data-resolution="${action[0]}" ${liveBusyAttributes(`task:${task.id}`)}>${action[1]}</button>` : "";
+  };
+  const tasks = live ? (room?.tasks || []).map((task, index) => ({
+    id: task.id, reference: `TASK-${String(index + 1).padStart(2, "0")}`, title: task.title,
+    owner: liveMemberName(room, task.confirmed_owner_id), mine: task.confirmed_owner_id === state.live.currentUserId,
+    mode: ({ HUMAN_AGENT: "人 + Agent", HUMAN_ONLY: "人工执行", HUMAN: "人工执行", PAIR: "结对协作" })[task.mode] || task.mode,
+    status: task.status, objective: task.objective, acceptance: task.acceptance_criteria,
+    live: true, actionHtml: actionHtml(task),
+  })) : workspaceTasks(latest).map((task, index) => ({
+    id: task.id, reference: `TASK-${String(index + 1).padStart(2, "0")}`, title: task.title,
+    owner: taskOwner(task), ownerLabel: state.acceptedTasks.includes(task.id) ? "负责人" : "建议负责人", mine: taskOwner(task) === currentUser.name,
+    mode: task.mode, status: state.acceptedTasks.includes(task.id) ? "ACCEPTED" : "PROPOSED",
+    objective: task.title, rationale: task.reason, acceptance: task.done, risk: task.risk, live: false, actionHtml: actionHtml(task),
+  }));
+  const members = live ? (room?.members || []) : [
+    { user_id: currentUser.id, display_name: currentUser.name, avatar: currentUser.avatar, membership_role: "ORIGINATOR" },
+    { user_id: "yike", display_name: "一可", membership_role: "MEMBER" },
+    ...joinedPeople.map(person => ({ user_id: person.id, display_name: person.name, avatar: person.avatar, membership_role: "MEMBER" })),
+  ];
+  const membersHtml = `<div class="workspace-members">${members.map(member => {
+    const person = live ? livePerson({ user_id: member.user_id, display_name: member.display_name, avatar: member.avatar }) : { id: member.user_id, name: member.display_name, avatar: member.avatar, monogram: member.display_name.slice(0, 2) };
+    const connection = acceptedConnectionForPerson(person);
+    return `<article>${glyph(person, "sm")}<span><strong>${escapeHtml(member.display_name)}</strong><small>${escapeHtml(liveMembershipLabel(member.membership_role))}</small></span>${connection ? `<button class="workspace-member-chat" data-action="open-conversation" data-connection-id="${escapeHtml(connection.connection_id)}" data-person="${escapeHtml(person.id)}" aria-label="私聊 ${escapeHtml(member.display_name)}">私聊</button>` : ""}</article>`;
+  }).join("")}</div>`;
+  let planHtml;
+  if (!live) planHtml = `<div><strong>${state.workspaceStarted ? "分工已确认" : "确认首次分工"}</strong><span>示例计划 · ${state.acceptedTasks.length} / ${tasks.length} 项已接受</span></div>${state.workspaceStarted ? '<span>演示状态</span>' : '<button class="primary-button" data-action="confirm-workspace-plan">模拟团队确认并开始协作</button>'}`;
+  else if (!room) planHtml = '<span>正在恢复项目数据…</span>';
+  else if (!pack) {
+    const canGenerate = new Set(["ORIGINATOR", "LEADER"]).has(project.my_membership?.membership_role);
+    planHtml = `<div><strong>${members.length < 2 ? "等待搭档加入" : "准备首次分工"}</strong><span>成员接受后，由全员确认计划</span></div>${canGenerate && members.length >= 2 ? `<button class="primary-button" data-action="generate-live-pack" ${liveBusyAttributes(`starter-pack:${project.id}`)}>生成启动计划</button>` : ""}`;
+  } else planHtml = `<div><strong>${pack.status === "CONFIRMED" ? "分工已确认" : "确认首次分工"}</strong><span>${room.confirmation_progress.confirmed} / ${room.confirmation_progress.required} 位成员已确认</span><small>${pack.generated_by === "TEMPLATE_FALLBACK" ? "模板建议" : "模型建议"}</small></div><button class="primary-button" data-action="confirm-live-plan" ${pack.status === "CONFIRMED" ? "disabled" : liveBusyAttributes(`plan-confirmation:${project.id}`)}>${pack.status === "CONFIRMED" ? "计划已确认" : "确认当前计划"}</button>`;
+  return `<div class="view utility-view workspace-view wb-view ${live ? "live-workspace-view" : ""}" ${live ? `data-live-project-id="${escapeHtml(project.id)}"` : ""}>${renderWorkbench({
+    live, title: live ? project.title : "离线会议洞察终端",
+    summary: live ? project.summary : "让线下讨论沉淀为可检索的决策、分歧与行动项。",
+    version: live ? (pack ? `计划 V${pack.version}` : "尚未生成计划") : "示例计划 V1",
+    tasks, membersHtml, planHtml, runs: room?.agent_runs || [],
+    activityHtml: live ? renderLiveActivityTimeline(room || {}) : renderWorkspaceTimeline(latest),
+    errorHtml: live && state.live.syncError ? `<div class="inline-sync-error"><span>${escapeHtml(state.live.syncError)}</span><button data-action="sync-live-now">重试</button></div>` : "",
+  }, state.workbench)}</div>`;
+}
+
 function renderLiveCollaboration() {
   const project = state.live.activeProject;
   const pendingInvitations = state.live.teamInvitations.filter(
@@ -1938,6 +2005,7 @@ function renderLiveCollaboration() {
   }
 
   const room = state.live.room;
+  if (desktopShellMedia.matches) return renderProjectWorkbench(project, room);
   const pack = room?.starter_pack;
   const canGenerate = new Set(["ORIGINATOR", "LEADER"]).has(project.my_membership?.membership_role);
   const members = room?.members || project.members || [];
@@ -1956,6 +2024,7 @@ function renderLiveCollaboration() {
       </div>
       <h3>${escapeHtml(project.title)}</h3>
       <p>${escapeHtml(project.summary)}</p>
+      <details class="mobile-project-description"><summary>项目介绍</summary><p>${escapeHtml(project.summary || "暂未填写项目介绍")}</p></details>
       <div class="workspace-project-meta">
         <div class="workspace-avatar-stack" aria-label="${members.length} 位项目成员">${members.map((member) => `<span>${escapeHtml((member.display_name || "成员").slice(0, 2).toUpperCase())}</span>`).join("")}</div>
         <span><strong>${members.length} 位成员</strong><small>${pack ? `计划 V${pack.version}` : "等待启动计划"}</small></span>
@@ -2011,13 +2080,24 @@ function renderLiveTaskRows(room, desktop = false) {
       : mine
         ? "<em>我负责</em>"
         : "";
-    return `<article${taskMarker}><b>${String(index + 1).padStart(2, "0")}</b><span><strong>${escapeHtml(task.title)}</strong><small>${escapeHtml(task.acceptance_criteria)}</small><em>${escapeHtml(task.mode)} · ${escapeHtml(liveTaskStatusLabel(task.status))} · 负责人：${escapeHtml(liveMemberName(room, task.confirmed_owner_id))}</em></span>${actionControl}</article>`;
+    return `<article${taskMarker}><b>${String(index + 1).padStart(2, "0")}</b><span><strong>${escapeHtml(task.title)}</strong>${desktop ? `<small>${escapeHtml(task.acceptance_criteria)}</small>` : `<details class="mobile-task-details"><summary>查看详情</summary><p>${escapeHtml(task.objective || "")}</p><small>验收标准：${escapeHtml(task.acceptance_criteria)}</small></details>`}<em>${desktop ? escapeHtml(task.mode) + " · " : ""}${escapeHtml(liveTaskStatusLabel(task.status))} · ${desktop ? "负责人：" : ""}${escapeHtml(liveMemberName(room, task.confirmed_owner_id))}</em></span>${actionControl}</article>`;
   }).join("");
 }
 
 function renderLivePlanPanel(project, room, canGenerate, desktop) {
   const pack = room?.starter_pack;
   const memberCount = room?.members?.length || project.members?.length || 0;
+  if (!desktop) {
+    if (!pack) return `<section class="launch-pack mobile-next-step"><h3>${memberCount < 2 ? "等待搭档加入" : "准备首次分工"}</h3><p>${memberCount < 2 ? "成员确认入队后，再一起分工。" : "Agent 提建议，成员确认后启动。"}</p>${canGenerate && memberCount >= 2 ? `<button class="primary-button full" data-action="generate-live-pack" ${liveBusyAttributes(`starter-pack:${project.id}`)}>生成分工建议</button>` : ""}</section>`;
+    return `<section class="launch-pack live-task-pack mobile-task-pack" data-live-pack-id="${escapeHtml(pack.id)}">
+      <header><h3>共同计划</h3><span class="source-chip">${pack.status === "CONFIRMED" ? "已确认" : "待确认"}</span></header>
+      <p class="mobile-plan-source">V${pack.version} · ${pack.generated_by === "TEMPLATE_FALLBACK" ? "模板建议" : "模型建议"} · ${room.confirmation_progress.confirmed}/${room.confirmation_progress.required} 人确认</p>
+      <details class="mobile-plan-context"><summary>计划说明与风险</summary><p>任务由成员领取，全员确认后启动。</p><p>${escapeHtml(pack.risk?.summary || "具体交付边界需共同确认。")}</p></details>
+      <div class="live-task-list">${renderLiveTaskRows(room, false)}</div>
+      ${pack.status !== "CONFIRMED" ? `<footer class="live-plan-confirmation"><button class="primary-button" data-action="confirm-live-plan" ${liveBusyAttributes(`plan-confirmation:${project.id}`)}>确认分工</button></footer>` : ""}
+      <p class="mobile-work-note">手机接收进展与确认，电脑展开专业工作。</p>
+    </section>`;
+  }
   if (!pack) {
     return `<section class="launch-pack live-empty-pack">
       <p class="micro-label">STARTER PACK / LIVE</p>
@@ -2130,7 +2210,10 @@ function taskOwner(task) {
   return state.assignmentOverrides[task.id] || task.owner;
 }
 
-function renderAssignmentItems(tasks) {
+function renderAssignmentItems(tasks, mobile = false) {
+  const context = task => mobile
+    ? `<details class="mobile-task-details"><summary>查看详情</summary><small class="assignment-reason">${task.reason}</small><small class="assignment-risk">先确认：${task.risk}</small></details>`
+    : `<small class="assignment-reason">${task.reason}</small><small class="assignment-risk">先确认：${task.risk}</small>`;
   if (startsInAgentDemo) {
     return tasks.map((task, index) => {
       const accepted = state.acceptedTasks.includes(task.id);
@@ -2142,10 +2225,10 @@ function renderAssignmentItems(tasks) {
         : state.workspaceStarted
           ? `<em>待负责人接受</em>`
           : `<button data-action="accept-demo-assignment" data-task-id="${task.id}">${actionLabel}</button>`;
-      return `<article><b>${String(index + 1).padStart(2, "0")}</b><span><strong>${task.title}</strong><small>${task.type} · ${task.mode} · ${ownerLabel}</small><small class="assignment-reason">${task.reason}</small><small class="assignment-risk">先确认：${task.risk}</small></span>${action}</article>`;
+      return `<article><b>${String(index + 1).padStart(2, "0")}</b><span><strong>${task.title}</strong><small>${mobile ? ownerLabel : task.type + " · " + task.mode + " · " + ownerLabel}</small>${context(task)}</span>${action}</article>`;
     }).join("");
   }
-  return tasks.map((task, index) => `<article><b>${String(index + 1).padStart(2, "0")}</b><span><strong>${task.title}</strong><small>${task.type} · ${task.mode} · 当前负责人：${taskOwner(task)}</small><small class="assignment-reason">${task.reason}</small><small class="assignment-risk">先确认：${task.risk}</small></span>${taskOwner(task) === currentUser.name ? `<em>我负责</em>` : `<button data-action="reassign-task" data-task-id="${task.id}">我来负责</button>`}</article>`).join("");
+  return tasks.map((task, index) => `<article><b>${String(index + 1).padStart(2, "0")}</b><span><strong>${task.title}</strong><small>${mobile ? "" : task.type + " · " + task.mode + " · "}当前负责人：${taskOwner(task)}</small>${context(task)}</span>${taskOwner(task) === currentUser.name ? `<em>我负责</em>` : `<button data-action="reassign-task" data-task-id="${task.id}">我来负责</button>`}</article>`).join("");
 }
 
 function renderWorkspaceTimeline(latestMember) {
@@ -2158,6 +2241,7 @@ function renderWorkspaceTimeline(latestMember) {
 }
 
 function renderWorkspace(joinedPeople) {
+  if (desktopShellMedia.matches) return renderProjectWorkbench(null, null, joinedPeople);
   const latestMember = joinedPeople.at(-1);
   const tasks = workspaceTasks(latestMember);
   const memberCount = 2 + joinedPeople.length;
@@ -2171,6 +2255,7 @@ function renderWorkspace(joinedPeople) {
         </div>
         <h3>离线会议洞察终端</h3>
         <p>让线下讨论自动沉淀为可检索的决策、分歧与行动项。</p>
+        <details class="mobile-project-description"><summary>项目介绍</summary><p>让线下讨论自动沉淀为可检索的决策、分歧与行动项。</p></details>
         <div class="workspace-project-meta">
           <div class="workspace-avatar-stack" aria-label="${memberCount} 位项目成员"><span>ZW</span><span>YK</span>${joinedPeople.map((person) => `<span>${person.monogram}</span>`).join("")}</div>
           <span><strong>${memberCount} 位成员</strong><small>成员已到齐</small></span><b>剩余 68h</b>
@@ -2243,13 +2328,13 @@ function renderWorkspaceOverview(joinedPeople, tasks, latestMember) {
           <span class="workspace-started-mark">✓</span>
           <p class="micro-label">PROJECT STARTED</p>
           <h3>项目已经正式启动</h3>
-          <p>${memberCount} 位成员完成首次分工。COSPAN 只保留关键确认与贡献记录，日常执行继续使用团队已有工具。</p>
+          <p>${memberCount} 位成员已确认分工。</p>
           <div><button class="secondary-button" data-action="open-workspace-tasks">查看我的任务</button><button class="secondary-button" data-action="trigger-project-sos">发起项目 SOS</button></div>
         </section>
       ` : `
         <section class="workspace-next-action">
           <header><div><p class="micro-label">当前行动</p><h3>确认首次分工</h3></div><span>约 1 分钟</span></header>
-          <p>Agent 已根据成员能力生成 V1 建议。先查看负责人和交付边界，再由团队确认是否开始。</p>
+          <p>查看任务和负责人，确认后开始。</p>
           <div class="workspace-action-facts" aria-label="分工建议摘要">
             <span><b>${tasks.length}</b> 项建议</span>
             <span><b>${new Set(tasks.map((task) => taskOwner(task))).size}</b> 位负责人</span>
@@ -2263,7 +2348,7 @@ function renderWorkspaceOverview(joinedPeople, tasks, latestMember) {
       ${state.workspaceSos ? `<article class="workspace-sos-live"><span>SOS 已发布</span><strong>需要一位熟悉端侧数据同步的开发者</strong><small>已向当前展会中明确开放协作的成员展示</small></article>` : ""}
 
       <section class="workspace-activity-preview">
-        <header><div><h3>最近动态</h3><p>只记录会影响协作的关键变化</p></div><button data-action="workspace-section" data-section="records">查看全部</button></header>
+        <header><h3>最近动态</h3><button data-action="workspace-section" data-section="records">查看全部</button></header>
         <article><i></i><span><strong>${latestMember.name} 已确认加入团队</strong><small>线下碰卡 · 刚刚</small></span></article>
         <article><i></i><span><strong>Agent 生成分工建议 V1</strong><small>${state.workspaceStarted ? "已由团队确认" : "等待成员确认"}</small></span></article>
         ${state.workspaceStarted ? `<article><i></i><span><strong>项目进入执行阶段</strong><small>当前有效版本 · 刚刚</small></span></article>` : ""}
@@ -2277,8 +2362,8 @@ function renderWorkspaceTasks(tasks) {
     <section class="workspace-section workspace-tasks">
       <section class="agent-proposal ${state.workspaceStarted ? "is-confirmed" : ""}">
         <header><div><p class="micro-label">AGENT PROPOSAL · V1</p><h3>${state.workspaceStarted ? "团队已确认启动方案" : "Agent 已生成分工建议"}</h3></div><span>${state.workspaceStarted ? "已确认" : "待确认"}</span></header>
-        <p>Agent 只能提出建议。每位成员都可以认领真正想做的部分，最终选择权交给人。</p>
-        <div class="assignment-list">${renderAssignmentItems(tasks)}</div>
+        <p>成员自行领取，全员确认后启动。</p>
+        <div class="assignment-list">${renderAssignmentItems(tasks, true)}</div>
         ${state.workspaceStarted ? `<div class="proposal-confirmed"><b>✓</b><span>方案已由人确认；后续调整不会覆盖历史版本。</span></div>` : `<button class="primary-button full" data-action="confirm-workspace-plan">模拟团队确认并开始协作</button>`}
       </section>
 
@@ -2464,34 +2549,11 @@ function renderProfile() {
 }
 
 function renderAppNavIcon(id) {
-  const paths = {
-    discover: `
-      <circle cx="12" cy="12" r="8.25"></circle>
-      <path d="m15.4 8.6-2.05 4.75L8.6 15.4l2.05-4.75 4.75-2.05Z"></path>
-    `,
-    connections: `
-      <path d="m9.25 14.75-1.4 1.4a3.4 3.4 0 0 1-4.8-4.8l2.3-2.3a3.4 3.4 0 0 1 4.8 0"></path>
-      <path d="m14.75 9.25 1.4-1.4a3.4 3.4 0 1 1 4.8 4.8l-2.3 2.3a3.4 3.4 0 0 1-4.8 0"></path>
-      <path d="m8.75 15.25 6.5-6.5"></path>
-    `,
-    collaboration: `
-      <path d="m7.65 7.75 2.4 2.4m6.3-2.4-2.4 2.4M12 14.7v1.05"></path>
-      <circle cx="6" cy="6.1" r="2.35"></circle>
-      <circle cx="18" cy="6.1" r="2.35"></circle>
-      <circle cx="12" cy="18.1" r="2.35"></circle>
-      <path d="m12 8 3.35 3.35L12 14.7l-3.35-3.35Z" fill="currentColor" stroke="none"></path>
-    `,
-    profile: `
-      <circle cx="12" cy="12" r="8.25"></circle>
-      <circle cx="12" cy="9.25" r="2.5"></circle>
-      <path d="M6.75 18.4a5.8 5.8 0 0 1 10.5 0"></path>
-    `,
-  };
-  const iconKind = id === "collaboration" ? "orchestration" : id;
-  return `<svg data-nav-icon="${iconKind}" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths[id]}</svg>`;
+  const kind = id === "collaboration" ? "orchestration" : id;
+  return renderUiIcon(id, "currentColor", `data-nav-icon="${kind}"`);
 }
 
-function renderAppNav() {
+function appNavModel() {
   const items = [
     ["discover", "发现"],
     ["connections", "连接"],
@@ -2513,7 +2575,34 @@ function renderAppNav() {
   const connectionCount = state.live.enabled
     ? [...unreadConversationCount.values()].reduce((total, count) => total + count, 0)
     : 0;
-  return `<nav class="app-nav" aria-label="主导航">${items.map(([id, label]) => `<button class="${state.tab === id ? "active" : ""}" data-tab="${id}" aria-label="${label}" ${state.tab === id ? 'aria-current="page"' : ""}><span>${renderAppNavIcon(id)}</span><small>${label}</small>${id === "connections" && connectionCount ? `<i>${connectionCount}</i>` : ""}</button>`).join("")}</nav>`;
+  return { items, connectionCount };
+}
+
+function renderAppNavButtons(items, connectionCount) {
+  return items.map(([id, label]) => `<button class="${state.tab === id ? "active" : ""}" data-tab="${id}" aria-label="${label}" ${state.tab === id ? 'aria-current="page"' : ""}><span>${renderAppNavIcon(id)}</span><small>${label}</small>${id === "connections" && connectionCount ? `<i>${connectionCount}</i>` : ""}</button>`).join("");
+}
+
+function renderMobileAppNav() {
+  const { items, connectionCount } = appNavModel();
+  return `<nav class="app-nav" aria-label="主导航">${renderAppNavButtons(items, connectionCount)}</nav>`;
+}
+
+function renderDesktopAppNav() {
+  const { connectionCount } = appNavModel();
+  const inWorkspace = state.tab === "collaboration";
+  const mine = inWorkspace && state.workbench.section === "mine";
+  const inPeople = ["connections", "discover"].includes(state.tab);
+  const item = (id, label, symbol, active, count = 0) => `<button data-action="desktop-section" data-section="${id}" class="${active ? "active" : ""}" ${active ? 'aria-current="page"' : ""}><span>${renderAppNavIcon(symbol)}</span><small>${label}</small>${count ? `<i>${count}</i>` : ""}</button>`;
+  return `<nav class="desktop-app-nav" aria-label="桌面主导航">
+    <div class="desktop-nav-brand" aria-label="COSPAN 合拍"><img src="./assets/cospan-icon.svg" alt="COSPAN 合拍" width="36" height="36" /><strong>COSPAN</strong><small>合拍</small></div>
+    <div class="desktop-nav-items">
+      ${item("mine", "我的工作", "profile", mine)}
+      ${item("projects", "项目空间", "collaboration", inWorkspace && !mine)}
+      ${item("people", "队友与连接", "connections", inPeople, connectionCount)}
+    </div>
+    ${inPeople ? `<div class="desktop-nav-secondary"><button data-tab="connections" ${state.tab === "connections" ? 'aria-current="page"' : ""}>已有连接</button><button data-tab="discover" ${state.tab === "discover" ? 'aria-current="page"' : ""}>发现队友</button></div>` : ""}
+    <div class="desktop-nav-footer"><p>${state.live.enabled ? "项目数据与手机同步" : "交互演示 · 非真实项目"}</p><div><button class="desktop-account" data-tab="profile" aria-label="个人资料">${glyph(currentUser, "sm")}<span>${escapeHtml(currentUser.name)}</span></button><button class="desktop-settings" data-action="open-profile-settings" aria-label="账号与设置">${renderUiIcon("settings")}</button></div></div>
+  </nav>`;
 }
 
 function renderDiscoveryFilterChip(group, value, label) {
@@ -2544,7 +2633,7 @@ function renderDiscoveryFilterSheet() {
     <button class="overlay-backdrop" data-action="close-discovery-filters" aria-label="关闭发现筛选"></button>
     <section class="bottom-sheet discovery-filter-sheet" aria-label="筛选偏好设置">
       <header class="discovery-filter-head">
-        <button class="filter-sheet-close" data-action="close-discovery-filters" aria-label="返回发现页">←</button>
+        <button class="filter-sheet-close" data-action="close-discovery-filters" aria-label="返回发现页">${renderUiIcon("back")}</button>
         <div><h3>筛选偏好</h3></div>
         <button class="filter-reset-link" data-action="reset-discovery-filters">重置</button>
       </header>
@@ -2592,7 +2681,7 @@ function renderProfileSettingsSheet() {
     <button class="overlay-backdrop" data-action="close-profile-settings" aria-label="关闭设置"></button>
     <section class="bottom-sheet profile-settings-sheet" aria-label="我的设置">
       <header class="profile-settings-head">
-        <button data-action="close-profile-settings" aria-label="返回我的页面">←</button>
+        <button data-action="close-profile-settings" aria-label="返回我的页面">${renderUiIcon("back")}</button>
         <div><p class="micro-label">COSPAN SETTINGS</p><h3>设置</h3></div>
       </header>
       <p class="profile-settings-copy">管理设备、隐私和展会账号。这些次级选项不会打断你的协作身份编辑。</p>
@@ -2621,7 +2710,7 @@ function renderEmailBindingSheet() {
     <button class="overlay-backdrop" data-action="close-email-binding" aria-label="关闭邮箱绑定"></button>
     <section class="bottom-sheet profile-settings-sheet email-binding-sheet" aria-label="登录邮箱">
       <header class="profile-settings-head">
-        <button data-action="close-email-binding" aria-label="返回设置">←</button>
+        <button data-action="close-email-binding" aria-label="返回设置">${renderUiIcon("back")}</button>
         <div><p class="micro-label">ACCOUNT RECOVERY</p><h3>登录邮箱</h3></div>
       </header>
       ${emailMethod.bound ? `<div class="email-binding-complete"><span aria-hidden="true">✓</span><strong>已绑定 ${escapeHtml(emailMethod.masked_email || "")}</strong><p>换手机或清理浏览器后，使用这个邮箱验证码即可恢复当前 COSPAN 账号。</p></div>` : !state.live.emailEnabled ? `<div class="email-binding-complete"><strong>邮件服务待配置</strong><p>服务器配置发件域名后即可绑定；当前账号和体验数据不受影响。</p></div>` : verifying ? `
@@ -2653,7 +2742,7 @@ function renderProfileBlockLibrary() {
     <button class="overlay-backdrop" data-action="close-profile-block-library" aria-label="关闭添加内容面板"></button>
     <section class="bottom-sheet profile-block-library" data-profile-block-library aria-label="添加协作证据内容">
       <header class="profile-block-sheet-head">
-        <button data-action="close-profile-block-library" aria-label="返回我的页面">←</button>
+        <button data-action="close-profile-block-library" aria-label="返回我的页面">${renderUiIcon("back")}</button>
         <div><p class="micro-label">ADD A COSPAN BLOCK</p><h3>添加内容</h3></div>
       </header>
       <aside class="profile-block-intro"><span>只放真实、可追问的协作证据</span><p>像搭积木一样补充对外卡片；每项都会先预览，再由你明确授权公开。</p></aside>
@@ -2688,7 +2777,7 @@ function renderProfileBlockEditor() {
     <button class="overlay-backdrop" data-action="close-profile-block-library" aria-label="关闭 Block 编辑"></button>
     <section class="bottom-sheet profile-block-editor" aria-label="编辑 ${escapeHtml(item.label)} Block">
       <header class="profile-block-sheet-head">
-        <button data-action="back-profile-block-library" aria-label="返回内容类型选择">←</button>
+        <button data-action="back-profile-block-library" aria-label="返回内容类型选择">${renderUiIcon("back")}</button>
         <div><p class="micro-label">${escapeHtml(item.category.toUpperCase())} / PREVIEW</p><h3>${escapeHtml(item.label)}</h3></div>
       </header>
       <form data-profile-block-form data-block-type="${type}">
@@ -2728,7 +2817,7 @@ function renderLiveProfileEditor() {
   return `<div class="overlay profile-settings-overlay">
     <button class="overlay-backdrop" data-action="close-profile-editor" aria-label="关闭资料编辑"></button>
     <section class="bottom-sheet live-profile-editor" aria-label="编辑公开协作资料">
-      <header class="profile-settings-head"><button data-action="close-profile-editor" aria-label="返回我的页面">←</button><div><p class="micro-label">PROFILE / AUTHORIZATION</p><h3>编辑协作资料</h3></div></header>
+      <header class="profile-settings-head"><button data-action="close-profile-editor" aria-label="返回我的页面">${renderUiIcon("back")}</button><div><p class="micro-label">PROFILE / AUTHORIZATION</p><h3>编辑协作资料</h3></div></header>
       <form data-live-profile-form>
         <label><span>怎么称呼你</span><input name="display-name" required autocomplete="name" maxlength="40" value="${escapeHtml(currentUser.name)}"></label>
         <label><span>当前角色</span><input name="role" required maxlength="80" value="${escapeHtml(profile.role)}"></label>
@@ -2822,7 +2911,7 @@ function renderDirectConversation() {
   return `<div class="overlay direct-conversation-overlay">
     <section class="direct-conversation" aria-label="与 ${escapeHtml(person.name)} 的对话">
       <header class="direct-conversation-head">
-        <button data-action="close-conversation" aria-label="返回连接列表">←</button>
+        <button data-action="close-conversation" aria-label="返回连接列表">${renderUiIcon("back")}</button>
         ${glyph(person, "sm")}
         <div><strong>${escapeHtml(person.name)}</strong><span>${escapeHtml(person.role || "已建立协作连接")}</span></div>
         <em><i></i>已建联</em>
@@ -3167,6 +3256,13 @@ function updateOnboardingIdentityPreview(form) {
 }
 
 function bindEvents() {
+  document.querySelector(".wb-detail")?.addEventListener("keydown", event => {
+    if (event.key !== "Escape") return;
+    const taskId = state.workbench.taskId;
+    state.workbench.taskId = null;
+    render();
+    document.querySelector(`.wb-task-open[data-task-id="${CSS.escape(taskId)}"]`)?.focus();
+  });
   document.querySelector("[data-live-otp-request]")?.addEventListener("submit", (event) => {
     event.preventDefault();
     if (event.currentTarget.reportValidity()) requestLiveOtp(event.currentTarget);
@@ -3228,7 +3324,7 @@ function bindEvents() {
     }
     state.live.error = "";
     state.onboardingStep = Math.min(3, state.onboardingStep + 1);
-    document.querySelector(".screen")?.scrollTo({ top: 0, behavior: "smooth" });
+    activeShellScreen()?.scrollTo({ top: 0, behavior: "smooth" });
     render();
   });
   const profileBlockForm = document.querySelector("[data-profile-block-form]");
@@ -3482,6 +3578,7 @@ function transitionPersonDetail(expanded) {
   });
 }
 
+const SWIPE_CUE_VOLUME = 0.27; // +5.1 dB versus 0.15; device media volume remains user-controlled.
 const swipeCueProfiles = Object.freeze({
   left: Object.freeze({ sweepStart: 680, sweepEnd: 430, airStart: 1500, airEnd: 850, settle: 360 }),
   right: Object.freeze({ sweepStart: 520, sweepEnd: 760, airStart: 950, airEnd: 1600, settle: 1040 }),
@@ -3545,7 +3642,7 @@ function scheduleSwipeCue(context, direction) {
 
   const master = context.createGain();
   master.gain.setValueAtTime(.0001, startAt);
-  master.gain.exponentialRampToValueAtTime(.035, startAt + .012);
+  master.gain.exponentialRampToValueAtTime(SWIPE_CUE_VOLUME, startAt + .012);
   master.gain.exponentialRampToValueAtTime(.0001, endAt);
   master.connect(context.destination);
 
@@ -3694,6 +3791,46 @@ function bindRecommendationSwipe() {
 
 function handleAction(action, element) {
   const navigationBefore = JSON.stringify(appHistoryPayload());
+  if (action === "desktop-section") {
+    const target = element.dataset.section;
+    if (!["mine", "projects", "people"].includes(target)) return;
+    state.tab = target === "people" ? "connections" : "collaboration";
+    if (target !== "people") state.workbench = { ...state.workbench, section: target === "mine" ? "mine" : "tasks", filter: "all", taskId: null };
+    state.overlay = null;
+    writeAppHistory();
+    render();
+    return;
+  }
+  if (action === "accept-workbench-task" && !state.live.enabled) {
+    const taskId = element.dataset.taskId;
+    const joined = people.filter(person => state.joined.includes(person.id));
+    if (joined.length && workspaceTasks(joined.at(-1)).some(task => task.id === taskId)) {
+      state.assignmentOverrides[taskId] = currentUser.name;
+      if (!state.acceptedTasks.includes(taskId)) state.acceptedTasks.push(taskId);
+      showToast("Demo：你已接受任务，等待团队确认计划");
+    }
+    render();
+    return;
+  }
+  if (action.startsWith("workbench-")) {
+    if (action === "workbench-section") {
+      state.workbench.section = element.dataset.section;
+      state.workbench.filter = "all";
+      state.workbench.taskId = null;
+    }
+    if (action === "workbench-layout") state.workbench.layout = element.dataset.layout;
+    if (action === "workbench-filter") state.workbench.filter = element.dataset.filter;
+    if (action === "workbench-task") state.workbench.taskId = element.dataset.taskId;
+    if (action === "workbench-close") state.workbench.taskId = null;
+    if (action === "workbench-blocked") {
+      state.workbench.section = "tasks";
+      state.workbench.filter = "blocked";
+      state.workbench.taskId = null;
+    }
+    render();
+    if (action === "workbench-task") document.querySelector(".wb-detail")?.focus({ preventScroll: true });
+    return;
+  }
   if (action === "start-agent-demo") {
     const url = new URL(location.href);
     url.searchParams.set("live", "0");
@@ -3864,7 +4001,7 @@ function handleAction(action, element) {
   }
   if (action === "onboarding-next") {
     state.onboardingStep = Math.min(3, state.onboardingStep + 1);
-    document.querySelector(".screen")?.scrollTo({ top: 0, behavior: "smooth" });
+    activeShellScreen()?.scrollTo({ top: 0, behavior: "smooth" });
   }
   if (action === "onboarding-back") {
     state.live.error = "";
@@ -5584,7 +5721,7 @@ function localPersonId(userId) {
 
 async function refreshLiveState({ preserveScreenScroll = false } = {}) {
   if (!state.live.enabled || !state.live.meLoaded || state.live.syncInFlight) return;
-  const activeScreen = preserveScreenScroll ? document.querySelector(".screen") : null;
+  const activeScreen = preserveScreenScroll ? activeShellScreen() : null;
   const screenScrollContext = activeScreen
     ? { screen: activeScreen, tab: state.tab, overlay: state.overlay }
     : null;
@@ -5644,7 +5781,7 @@ async function refreshLiveState({ preserveScreenScroll = false } = {}) {
     const composerHasFocus = state.overlay === "conversation"
       && document.activeElement?.closest?.("[data-conversation-form]");
     if (!composerHasFocus) {
-      const currentScreen = document.querySelector(".screen");
+      const currentScreen = activeShellScreen();
       const preservedScrollTop = (
         screenScrollContext
         && screenScrollContext.screen === currentScreen
@@ -5653,7 +5790,7 @@ async function refreshLiveState({ preserveScreenScroll = false } = {}) {
       ) ? currentScreen.scrollTop : null;
       render();
       if (preservedScrollTop !== null) {
-        const refreshedScreen = document.querySelector(".screen");
+        const refreshedScreen = activeShellScreen();
         if (refreshedScreen) refreshedScreen.scrollTop = preservedScrollTop;
       }
     }
@@ -5872,4 +6009,5 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
+desktopShellMedia.addEventListener("change", () => render());
 initializeLiveAuthentication();

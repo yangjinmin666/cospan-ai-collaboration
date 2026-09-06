@@ -13,8 +13,10 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./assets/cospan-icon.svg" type="image/svg+xml" />
     <title>COSPAN 合拍 · 现场协作</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=20260906-3" />
     <link rel="stylesheet" href="./assets/splash.css" />
+    <link rel="stylesheet" href="./shells/workbench.css?v=20260906-3" />
+    <link rel="stylesheet" href="./shells/desktop-navigation.css?v=20260906-3" />
   </head>
   <body>
     <button id="rally-splash" class="rally-splash" type="button" aria-label="COSPAN 合拍：人与人先相遇，人与 Agent 再共创。点击跳过开屏">
@@ -24,9 +26,9 @@
         <b></b>
       </span>
       <span class="rally-splash-room">
-        <svg viewBox="0 0 280 230" aria-hidden="true">
-          <path class="rally-room-line rally-room-line-a" d="M132 27H72C49 27 34 43 34 65V157C34 179 50 195 72 195H118" />
-          <path class="rally-room-line rally-room-line-b" d="M148 27H208C231 27 246 43 246 65V157C246 179 230 195 208 195H162" />
+        <svg viewBox="0 0 280 222" aria-hidden="true">
+          <path class="rally-room-line rally-room-line-a" pathLength="1" d="M132 27H72C49 27 34 43 34 65V157C34 179 49 195 72 195H132" />
+          <path class="rally-room-line rally-room-line-b" pathLength="1" d="M148 27H208C231 27 246 43 246 65V157C246 179 231 195 208 195H148" />
         </svg>
         <span class="rally-splash-slogan">
           <strong><span>人与人先相遇，</span><span>人与 Agent 再共创。</span></strong>
@@ -67,10 +69,13 @@
         }, { once: true });
       })();
     </script>
-    <script type="module" src="./app.js"></script>
+    <script type="module" src="./app.js?v=20260906-5"></script>
     <script>
       if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js"));
+        window.addEventListener("load", () => navigator.serviceWorker
+          .register("./sw.js", { updateViaCache: "none" })
+          .then((registration) => registration.update())
+          .catch(() => {}));
       }
     </script>
   </body>

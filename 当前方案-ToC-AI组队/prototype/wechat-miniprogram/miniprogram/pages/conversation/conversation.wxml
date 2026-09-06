@@ -1,0 +1,22 @@
+<view class="conversation-page" wx:if="{{conversation}}">
+  <view class="conversation-context">
+    <view class="surface-label">{{conversation.context.event_name || 'COSPAN CONNECTION'}}</view>
+    <view>你们已经双方确认认识，可以从一句具体的协作问题开始。</view>
+  </view>
+
+  <scroll-view class="message-list" scroll-y="true" scroll-top="{{scrollTop}}" scroll-with-animation="true">
+    <view class="message {{item.isMine ? 'is-mine' : ''}}" wx:for="{{messages}}" wx:key="id">
+      <view class="message-bubble">{{item.text}}</view>
+      <view class="message-time">{{item.timeLabel}}</view>
+    </view>
+    <view class="conversation-empty" wx:if="{{!messages.length}}">
+      <view class="card-title">从一句具体的话开始</view>
+      <view class="meta">例如：“你刚才提到的方向，我可以帮你先验证哪一部分？”</view>
+    </view>
+  </scroll-view>
+
+  <view class="composer">
+    <textarea class="composer-input" auto-height="true" maxlength="500" placeholder="说一句具体的话…" value="{{draft}}" bindinput="updateDraft" />
+    <button class="send-button" loading="{{sending}}" disabled="{{!draft || sending}}" bindtap="sendMessage">发送</button>
+  </view>
+</view>

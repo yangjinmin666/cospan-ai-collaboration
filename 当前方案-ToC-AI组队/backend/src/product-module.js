@@ -188,6 +188,18 @@ function installSchema(database) {
       FOREIGN KEY (user_id) REFERENCES users(user_id)
     );
 
+    CREATE TABLE IF NOT EXISTS task_creation_requests (
+      project_id TEXT NOT NULL,
+      actor_id TEXT NOT NULL,
+      client_request_id TEXT NOT NULL,
+      payload_json TEXT NOT NULL,
+      task_id TEXT NOT NULL,
+      PRIMARY KEY (project_id, actor_id, client_request_id),
+      FOREIGN KEY (project_id) REFERENCES projects(project_id),
+      FOREIGN KEY (actor_id) REFERENCES users(user_id),
+      FOREIGN KEY (task_id) REFERENCES work_items(task_id)
+    );
+
     CREATE TABLE IF NOT EXISTS project_sos (
       sos_id TEXT PRIMARY KEY,
       project_id TEXT NOT NULL,
@@ -2070,6 +2082,59 @@ export function createProductModule(database, {
     };
   }
 
+  async function createTask({ request, actorId, projectId, auditSource = "mobile" }) {
+    if (!actorId) return error(401, "AUTH_REQUIRED", "请先登录。");
+    if (!projectMember(database, projectId, actorId)) {
+      return error(403, "TASK_FORBIDDEN", "只有项目成员可以补充任务。");
+    }
+    const parsed = await readJson(request);
+    const readError = jsonReadError(parsed);
+    if (readError) return readError;
+    const payload = parseObject(parsed.value);
+    if (!payload || !["title", "objective", "acceptance_criteria"].every((field) => (
+      typeof payload[field] === "string" && payload[field].trim()
+      && payload[field].length <= (field === "title" ? 120 : 2000)
+    )) || !TASK_MODES_INTERNAL.has(payload.mode)
+      || typeof payload.client_request_id !== "string"
+      || !/^[a-zA-Z0-9_-]{8,120}$/.test(payload.client_request_id)) {
+      return error(400, "INVALID_TASK", "请填写任务名称、目标、验收标准和有效的协作方式。");
+    }
+    const suggestion = payload.suggested_owner_id ?? null;
+    if (suggestion !== null && (typeof suggestion !== "string"
+      || !projectMember(database, projectId, suggestion))) {
+      return error(400, "INVALID_TASK_OWNER", "建议负责人必须是已确认入队的成员。");
+    }
+    const normalized = JSON.stringify({ title: payload.title.trim(), objective: payload.objective.trim(),
+      acceptance_criteria: payload.acceptance_criteria.trim(), mode: payload.mode, suggested_owner_id: suggestion });
+    const previous = database.prepare(`SELECT * FROM task_creation_requests
+      WHERE project_id = ? AND actor_id = ? AND client_request_id = ?`).get(projectId, actorId, payload.client_request_id);
+    if (previous) {
+      if (previous.payload_json !== normalized) return error(409, "TASK_REQUEST_CONFLICT", "这次提交的内容已变化，请刷新后创建新任务。");
+      return { status: 200, body: { task: mapTask(database.prepare("SELECT * FROM work_items WHERE task_id = ?").get(previous.task_id)), idempotent_replay: true } };
+    }
+    const pack = findStarterPack(database, projectId);
+    if (!pack) return error(409, "STARTER_PACK_REQUIRED", "请先生成共同计划，再补充任务。");
+    const now = clock().toISOString();
+    const taskId = `task_${randomUUID()}`;
+    const project = findProject(database, projectId);
+    database.exec("BEGIN IMMEDIATE");
+    try {
+      const position = Number(database.prepare("SELECT COALESCE(MAX(position), -1) + 1 AS next FROM work_items WHERE project_id = ?").get(projectId).next);
+      database.prepare(`INSERT INTO work_items (task_id, project_id, pack_id, position, title, objective,
+        acceptance_criteria, mode, suggested_owner_id, confirmed_owner_id, status, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 'PROPOSED', ?, ?)`).run(taskId, projectId, pack.id, position,
+        payload.title.trim(), payload.objective.trim(), payload.acceptance_criteria.trim(), payload.mode, suggestion, now, now);
+      database.prepare(`INSERT INTO task_creation_requests VALUES (?, ?, ?, ?, ?)`).run(projectId, actorId, payload.client_request_id, normalized, taskId);
+      database.prepare("DELETE FROM plan_confirmations WHERE pack_id = ?").run(pack.id);
+      database.prepare("UPDATE starter_packs SET version = version + 1, status = 'PROPOSED', confirmed_at = NULL WHERE pack_id = ?").run(pack.id);
+      appendEventLog(database, { eventId: project.event_id, actorId, type: "task_created", objectType: "work_item",
+        objectId: taskId, source: auditSource, payload: { project_id: projectId, title: payload.title.trim(), plan_version: pack.version + 1 }, createdAt: now });
+      database.exec("COMMIT");
+    } catch (cause) { database.exec("ROLLBACK"); throw cause; }
+    return { status: 201, body: { task: mapTask(database.prepare("SELECT * FROM work_items WHERE task_id = ?").get(taskId)),
+      starter_pack: findStarterPack(database, projectId), idempotent_replay: false } };
+  }
+
   function updateTask({ actorId, taskId, action, auditSource = "mobile" }) {
     if (!actorId) return error(401, "AUTH_REQUIRED", "A valid session is required.");
     const row = database.prepare("SELECT * FROM work_items WHERE task_id = ?").get(taskId);
@@ -2121,13 +2186,15 @@ export function createProductModule(database, {
       start: { from: "ACCEPTED", to: "IN_PROGRESS", event: "task_started" },
       complete: { from: "IN_PROGRESS", to: "DONE", event: "task_completed" },
       block: { from: "IN_PROGRESS", to: "BLOCKED", event: "task_blocked" },
+      resume: { from: "BLOCKED", to: "IN_PROGRESS", event: "task_resumed" },
+      reopen: { from: "DONE", to: "IN_PROGRESS", event: "task_reopened" },
     };
     const transition = transitions[action];
-    if (!transition) return error(400, "INVALID_ACTION", "action must be claim, start, complete, or block.");
+    if (!transition) return error(400, "INVALID_ACTION", "action must be claim, start, complete, block, resume, or reopen.");
     if (current.confirmed_owner_id !== actorId) {
       return error(403, "TASK_OWNER_ONLY", "Only the confirmed task owner can change execution status.");
     }
-    if (action === "start" && findStarterPack(database, current.project_id)?.status !== "CONFIRMED") {
+    if (["start", "resume", "reopen"].includes(action) && findStarterPack(database, current.project_id)?.status !== "CONFIRMED") {
       return error(409, "PLAN_NOT_CONFIRMED", "The team must confirm the plan before execution starts.");
     }
     if (current.status !== transition.from) {
@@ -3473,6 +3540,11 @@ export function createProductModule(database, {
       }
 
       const taskMatch = url.pathname.match(/^\/api\/tasks\/([^/]+)$/);
+      const projectTasksMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/tasks$/);
+      if (request.method === "POST" && projectTasksMatch) {
+        return createTask({ request, actorId, projectId: decodeURIComponent(projectTasksMatch[1]),
+          auditSource: request.headers["x-cospan-surface"] === "desktop" ? "desktop" : "mobile" });
+      }
       if (request.method === "PATCH" && taskMatch) {
         const parsed = await readJson(request);
         const readError = jsonReadError(parsed);

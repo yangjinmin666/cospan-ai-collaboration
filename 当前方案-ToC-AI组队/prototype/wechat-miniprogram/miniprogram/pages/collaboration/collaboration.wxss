@@ -1,3 +1,59 @@
+.collaboration-head {
+  width: max-content;
+  min-height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 20rpx;
+  padding: 0 0 30rpx;
+}
+
+.collaboration-head .title { margin: 0; }
+.collaboration-head .subtitle { margin-top: 7rpx; font-size: 22rpx; }
+
+.event-trigger { position: relative; box-sizing: border-box; width: 88rpx; height: 88rpx; flex: 0 0 88rpx; display: flex; align-items: center; justify-content: center; margin: 0; padding: 0; border: 1rpx solid #d7dde5; border-radius: 27rpx; background: #fff; color: #4d5967; }
+
+.project-state {
+  display: flex;
+  align-items: center;
+  gap: 9rpx;
+  padding: 11rpx 14rpx;
+  border-radius: 999rpx;
+  background: #edf7f2;
+  color: #277055;
+  font-size: 18rpx;
+  font-weight: 750;
+}
+
+.project-state i {
+  width: 9rpx;
+  height: 9rpx;
+  border-radius: 50%;
+  background: #2f9870;
+  box-shadow: 0 0 0 7rpx rgba(47,152,112,.1);
+}
+
+.agency-note {
+  display: grid;
+  grid-template-columns: 76rpx minmax(0, 1fr);
+  align-items: center;
+  gap: 19rpx;
+  margin-bottom: 28rpx;
+  padding: 23rpx 24rpx;
+  border: 1rpx solid #d8e3f2;
+  border-radius: 26rpx;
+  background: #f3f7fd;
+}
+
+.agency-icon { position: relative; width: 76rpx; height: 68rpx; }
+.agency-icon view { position: absolute; width: 20rpx; height: 20rpx; border: 4rpx solid #347cf8; border-radius: 50%; background: #fff; }
+.agency-icon view:nth-child(1) { top: 0; left: 26rpx; }
+.agency-icon view:nth-child(2) { bottom: 0; left: 0; }
+.agency-icon view:nth-child(3) { right: 0; bottom: 0; }
+.agency-icon::before, .agency-icon::after { position: absolute; top: 34rpx; width: 40rpx; height: 3rpx; background: #347cf8; content: ""; }
+.agency-icon::before { left: 4rpx; transform: rotate(-55deg); }
+.agency-icon::after { right: 4rpx; transform: rotate(55deg); }
+
 .section-heading {
   margin-top: 8rpx;
 }
@@ -6,8 +62,9 @@
   margin: 20rpx 4rpx 4rpx 0;
   padding: 8rpx 22rpx;
   border-radius: 999rpx;
-  background: #e9ebee;
-  color: #4b515b;
+  border: 1rpx solid #c9d9f1;
+  background: #edf4ff;
+  color: #245fc8;
   font-size: 24rpx;
   line-height: 1.7;
 }
@@ -17,8 +74,52 @@
   font-size: 21rpx;
 }
 
-.member-line {
-  margin-top: 18rpx;
-  color: #505660;
-  font-size: 24rpx;
+.create-title { margin-top: 9rpx; }
+
+.project-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
 }
+
+.project-title { margin-top: 24rpx; font-size: 38rpx; font-weight: 750; line-height: 1.22; }
+.project-summary { margin-top: 12rpx; color: #647283; font-size: 24rpx; line-height: 1.55; }
+
+.member-line {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  margin-top: 24rpx;
+  padding: 18rpx 0;
+  border-top: 1rpx solid #e2e7ed;
+  color: #536170;
+  font-size: 22rpx;
+}
+
+.member-stack { display: flex; padding-left: 12rpx; }
+.member-stack i { width: 30rpx; height: 30rpx; margin-left: -12rpx; border: 3rpx solid #fff; border-radius: 50%; background: #d9e7ff; }
+.member-stack i:nth-child(2) { background: #dcefe8; }
+.member-stack i:nth-child(3) { background: #efe5ff; }
+.enter-space { display: flex; align-items: center; justify-content: space-between; padding: 0 26rpx; text-align: left; }
+.enter-space text { color: #347cf8; font-size: 32rpx; }
+.invite-action { height: auto; min-height: 76rpx; padding: 15rpx 20rpx; line-height: 1.35; }
+
+/* Mobile companion: one project summary and one primary destination. */
+.collaboration-page { padding-left: 36rpx; padding-right: 36rpx; background: #fff; }
+.collaboration-head { padding-bottom: 24rpx; }
+.collaboration-page .section-heading { margin: 20rpx 0; }
+.collaboration-page .section-title { margin: 0; font-size: 34rpx; line-height: 1.4; }
+.collaboration-page .mini-action { box-sizing: border-box; width: auto; min-width: 104rpx; max-width: 180rpx; min-height: 88rpx; margin: 0; padding: 20rpx; border: 0; background: transparent; color: #286edb; font-size: 26rpx; }
+.collaboration-page .card { padding: 28rpx; border: 1rpx solid #e0e5eb; border-radius: 32rpx; box-shadow: none; }
+.project-state { padding: 6rpx 12rpx; background: #f1f4f7; color: #596778; font-size: 24rpx; }
+.project-member-count { color: #687687; font-size: 24rpx; }
+.project-title { margin-top: 20rpx; font-size: 36rpx; line-height: 1.35; }
+.project-summary { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 26rpx; }
+.collaboration-page .enter-space { box-sizing: border-box; width: 100%; min-width: 100%; max-width: 100%; min-height: 88rpx; margin-top: 24rpx; padding: 20rpx 0 0; border: 0; border-top: 1rpx solid #e5e9ed; border-radius: 0; background: transparent; color: #286edb; font-size: 28rpx; line-height: 1.4; }
+.collaboration-page .invite-toggle { box-sizing: border-box; width: auto; min-width: 140rpx; max-width: 100%; min-height: 88rpx; margin: 12rpx 0 0; padding: 20rpx 0; border: 0; background: transparent; color: #687687; font-size: 24rpx; line-height: 1.5; text-align: left; }
+.collaboration-page .mini-action::after, .collaboration-page .enter-space::after, .collaboration-page .invite-toggle::after { border: 0; }
+.invitation-card .meta { margin-top: 12rpx; font-size: 26rpx; }
+.invitation-card .primary-button { margin-top: 24rpx; }
+.collaboration-footnote { padding: 24rpx 0; color: #74818e; font-size: 24rpx; line-height: 1.6; }
+.collaboration-feedback { display: flex; align-items: center; justify-content: space-between; gap: 20rpx; padding: 20rpx 0; color: #687687; font-size: 26rpx; }
