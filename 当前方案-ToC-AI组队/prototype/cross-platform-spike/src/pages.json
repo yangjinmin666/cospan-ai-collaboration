@@ -1,0 +1,4 @@
+{
+  "pages": [{ "path": "pages/discover/index", "style": { "navigationStyle": "custom", "disableScroll": true, "navigationBarTitleText": "COSPAN 跨端验证" } }],
+  "globalStyle": { "backgroundColor": "#ffffff", "navigationBarTextStyle": "black" }
+}

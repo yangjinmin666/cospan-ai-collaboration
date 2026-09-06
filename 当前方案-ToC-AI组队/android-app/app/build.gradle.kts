@@ -4,9 +4,12 @@ plugins {
     id("com.android.application")
 }
 
+// Opt-in cross-platform validation package. Default Live/demo builds are unchanged.
+val cospanUniSpike = providers.gradleProperty("cospanUniSpike").map(String::toBoolean).orElse(false).get()
+if (cospanUniSpike) layout.buildDirectory.set(file("build-uni-spike"))
 val generatedWebAssets = layout.buildDirectory.dir("generated/rallyWebAssets")
 val rallyAssetHost = "rally.local"
-val rallyDemoMode = providers.gradleProperty("rallyDemoMode")
+val rallyDemoMode = cospanUniSpike || providers.gradleProperty("rallyDemoMode")
     .map(String::toBoolean)
     .orElse(false)
     .get()
@@ -52,7 +55,12 @@ val syncWebAssets by tasks.registering(Sync::class) {
     inputs.property("rallyApiOrigin", rallyApiOrigin)
     inputs.property("rallyAppOrigin", rallyAppOrigin)
     inputs.property("rallyDemoMode", rallyDemoMode)
-    from("../../prototype/mobile-demo") {
+    inputs.property("cospanUniSpike", cospanUniSpike)
+    if (cospanUniSpike) {
+        val spikeSource = file("../../prototype/cross-platform-spike/dist/build/h5")
+        doFirst { require(spikeSource.resolve("index.html").isFile) { "Build the cross-platform H5 spike before packaging." } }
+        from(spikeSource)
+    } else from("../../prototype/mobile-demo") {
         include(
             "index.html",
             "styles.css",
@@ -87,15 +95,16 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "ai.rally.collaboration"
+        applicationId = if (cospanUniSpike) "ai.rally.collaboration.unispike" else "ai.rally.collaboration"
         minSdk = 26
         targetSdk = 36
         versionCode = 2
-        versionName = "0.2.0-live"
+        versionName = if (cospanUniSpike) "0.1.0-uni-spike" else "0.2.0-live"
         buildConfigField("String", "RALLY_ASSET_HOST", "\"$rallyAssetHost\"")
         buildConfigField("String", "RALLY_APP_HOST", "\"${rallyAppUri?.host ?: "rally.invalid"}\"")
         buildConfigField("boolean", "RALLY_DEMO_MODE", rallyDemoMode.toString())
         manifestPlaceholders["rallyAppLinkHost"] = rallyAppUri?.host ?: "rally.invalid"
+        manifestPlaceholders["cospanAppLabel"] = if (cospanUniSpike) "COSPAN 跨端验证" else "@string/app_name"
     }
 
     sourceSets.getByName("main").assets.srcDir(generatedWebAssets)

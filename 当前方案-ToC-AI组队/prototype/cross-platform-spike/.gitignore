@@ -1,0 +1,6 @@
+node_modules/
+dist/
+src/static/generated/
+artifacts/
+.hbuilderx/
+project.private.config.json

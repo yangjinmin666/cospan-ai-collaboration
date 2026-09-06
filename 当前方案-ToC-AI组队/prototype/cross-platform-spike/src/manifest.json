@@ -1,0 +1,6 @@
+{
+  "name": "COSPAN 跨端验证", "appid": "", "versionName": "0.1.0", "versionCode": "1",
+  "uniStatistics": { "enable": false },
+  "h5": { "router": { "mode": "hash", "base": "./" }, "title": "COSPAN 跨端验证" },
+  "mp-weixin": { "appid": "touristappid", "libVersion": "3.17.2", "setting": { "urlCheck": true }, "usingComponents": true }
+}
