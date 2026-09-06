@@ -4,7 +4,7 @@
  */
 
 import { ApiError, RallyApiClient } from "./api-client.js";
-import { renderUiIcon } from "./assets/ui-icons.mjs?v=20260906-5";
+import { renderUiIcon } from "./assets/ui-icons.mjs?v=20260906-6";
 import { renderWorkbench } from "./shells/workbench.js?v=20260906-3";
 import {
   DESKTOP_SHELL_QUERY,
@@ -1559,12 +1559,12 @@ function renderContextSwitcherSheet() {
       </header>
       <div class="context-options" role="radiogroup" aria-label="选择发现范围">
         <button class="context-option ${activeContext ? "selected" : ""}" data-action="select-discovery-context" data-context-scope="event" role="radio" aria-checked="${Boolean(activeContext)}" ${eventDisabled ? "disabled" : ""}>
-          <span class="context-option-mark is-event" aria-hidden="true"><i></i><b></b></span>
+          <span class="context-option-mark is-event" aria-hidden="true">${renderUiIcon("event")}</span>
           <span><strong>${escapeHtml(eventName)}</strong><small>本场推荐、附近和授权名册</small></span>
           <em aria-hidden="true">${activeContext ? "✓" : "→"}</em>
         </button>
         <button class="context-option ${activeContext ? "" : "selected"}" data-action="select-discovery-context" data-context-scope="nearby" role="radio" aria-checked="${!activeContext}">
-          <span class="context-option-mark is-nearby" aria-hidden="true"><i></i><b></b></span>
+          <span class="context-option-mark is-nearby" aria-hidden="true">${renderUiIcon("nearby")}</span>
           <span><strong>日常附近</strong><small>发现身边主动开放的人</small></span>
           <em aria-hidden="true">${activeContext ? "→" : "✓"}</em>
         </button>

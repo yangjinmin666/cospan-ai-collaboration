@@ -1,13 +1,13 @@
-const CACHE_NAME = "cospan-shell-v31";
+const CACHE_NAME = "cospan-shell-v32";
 const SHELL_ASSETS = [
   "./",
   "./index.html",
   "./join.html",
   "./styles.css",
   "./app.js",
-  "./app.js?v=20260906-5",
-  "./styles.css?v=20260906-3",
-  "./assets/ui-icons.mjs?v=20260906-5",
+  "./app.js?v=20260906-6",
+  "./styles.css?v=20260906-6",
+  "./assets/ui-icons.mjs?v=20260906-6",
   "./shells/workbench.js?v=20260906-3",
   "./shells/workbench.css?v=20260906-3",
   "./shells/desktop-navigation.css?v=20260906-3",

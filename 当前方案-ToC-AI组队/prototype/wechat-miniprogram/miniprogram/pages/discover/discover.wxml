@@ -89,8 +89,8 @@
 
     <view class="radar-permission" wx:if="{{!nearbyEnabled}}">
       <strong class="radar-permission-title">开启后发现身边主动可见的人</strong>
-      <text class="radar-permission-copy">仅展示大致距离，不公开精确位置。</text>
-      <button class="radar-permission-action" loading="{{nearbyRequesting}}" disabled="{{nearbyRequesting}}" bindtap="toggleNearbyFromButton">{{nearbyRequesting ? '正在定位' : nearbyError ? '重新开启附近' : '开启附近发现'}}</button>
+      <text class="radar-permission-copy">{{profileIncomplete ? '先完善协作资料，再开启附近发现。' : '仅展示大致距离，不公开精确位置。'}}</text>
+      <button class="radar-permission-action" loading="{{nearbyRequesting}}" disabled="{{nearbyRequesting}}" bindtap="toggleNearbyFromButton">{{profileIncomplete ? '完善协作资料' : nearbyRequesting ? '正在定位' : nearbyError ? '重新开启附近' : '开启附近发现'}}</button>
     </view>
 
     <view class="nearby-focus-card" wx:if="{{nearbyEnabled && nearbyFocus}}">
@@ -158,7 +158,6 @@
       <view class="filter-head"><button class="filter-back icon-button" bindtap="closeFilters" aria-label="返回发现页"><image class="ui-icon" src="/assets/ui-back.svg" mode="aspectFit" /></button><view class="filter-title">筛选偏好</view><button class="reset-filter" bindtap="resetFilterDraft">重置</button></view>
       <scroll-view class="filter-sheet-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}">
         <view class="filter-content">
-          <button wx:if="{{profileIncomplete}}" class="browse-state" bindtap="openOnboarding">当前处于先看看模式 · 完善身份后可认识和开启附近</button>
           <view class="filter-section">
             <view class="filter-section-head"><text class="filter-section-label">协作状态</text><text class="filter-section-hint">可多选</text></view>
             <view class="filter-choice-list"><button wx:for="{{filterStatusOptions}}" wx:key="value" class="filter-choice {{item.selected ? 'selected' : ''}}" data-group="statuses" data-value="{{item.value}}" bindtap="toggleFilterChoice" aria-pressed="{{item.selected}}">{{item.label}}</button></view>

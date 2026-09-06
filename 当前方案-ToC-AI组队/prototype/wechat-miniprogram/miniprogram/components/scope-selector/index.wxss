@@ -20,13 +20,8 @@
 .scope-detail { display: block; color: #75818e; font-size: 24rpx; line-height: 1.42; }
 .scope-check { flex: 0 0 48rpx; width: 48rpx; height: 48rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #81909f; font-size: 26rpx; font-weight: 800; line-height: 1; }
 .selected .scope-check { background: #347cf8; color: #fff; }
-.scope-mark { position: relative; flex: 0 0 76rpx; width: 76rpx; height: 76rpx; border: 1rpx solid #dde4ec; border-radius: 24rpx; background: #f5f7fa; }
-.event-outline { position: absolute; left: 15rpx; top: 16rpx; width: 36rpx; height: 38rpx; border: 3rpx solid #344454; border-radius: 8rpx; }
-.event-outline::after { content: ""; position: absolute; top: 10rpx; left: 7rpx; right: 7rpx; height: 3rpx; background: #344454; box-shadow: 0 11rpx 0 #abb5c0; }
-.mark-dot { position: absolute; right: 8rpx; top: 8rpx; width: 12rpx; height: 12rpx; border: 3rpx solid #f5f7fa; border-radius: 50%; background: #347cf8; }
+.scope-mark { box-sizing: border-box; flex: 0 0 76rpx; width: 76rpx; height: 76rpx; display: flex; align-items: center; justify-content: center; border: 2rpx solid #d8dfe7; border-radius: 24rpx; background: #f5f7fa; }
 .is-nearby { border-radius: 50%; }
-.nearby-ring { position: absolute; inset: 12rpx; border: 3rpx solid #aab4bf; border-radius: 50%; }
-.nearby-core { position: absolute; inset: 27rpx; border-radius: 50%; background: #347cf8; }
 .scope-note { margin: 22rpx 4rpx 0; color: #6f7d8b; font-size: 24rpx; line-height: 1.5; }
 .scope-empty { padding: 20rpx 4rpx; color: #6f7d8b; font-size: 24rpx; line-height: 1.5; }
 .scope-manage { width: 100%; min-width: 100%; max-width: 100%; min-height: 88rpx; display: flex; align-items: center; justify-content: space-between; padding: 0 4rpx; margin-top: 14rpx; background: transparent; color: #285fae; font-size: 26rpx; font-weight: 760; line-height: 1.5; }

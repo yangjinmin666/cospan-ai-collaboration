@@ -23,3 +23,11 @@ test("custom controls use SVG, never system-dependent arrow and gear glyphs", ()
   assert.match(read("discover"), /ui-back.svg/);
   assert.doesNotMatch(read("discover"), />←<|class="filter-lines"/);
 });
+
+test("scope option marks reuse 24px shared SVG icons instead of independent CSS drawings", () => {
+  const scope = fs.readFileSync(path.join(root, "miniprogram/components/scope-selector/index.wxml"), "utf8");
+  const style = fs.readFileSync(path.join(root, "miniprogram/components/scope-selector/index.wxss"), "utf8");
+  for (const name of ["event", "nearby"]) assert.ok(scope.includes('class="ui-icon" src="/assets/ui-' + name + '.svg"'));
+  assert.doesNotMatch(scope + style, /event-outline|nearby-ring|nearby-core|mark-dot/);
+  assert.match(style, /\.scope-mark\s*\{[^}]*border:\s*2rpx solid #d8dfe7/);
+});

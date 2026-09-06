@@ -831,16 +831,9 @@ body[data-source="android-app"] .direct-conversation-head { padding-top: max(44p
 .context-option small { color: #75818e; font-size: 12px; line-height: 1.42; }
 .context-option em { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; color: #81909f; font-size: 13px; font-style: normal; font-weight: 800; }
 .context-option.selected em { background: var(--guide-blue); color: #fff; }
-.context-option-mark { position: relative; width: 38px; height: 38px; display: block; border: 1px solid #dde4ec; border-radius: 12px; background: #f5f7fa; color: #344454; }
-.context-option-mark.is-event i { position: absolute; inset: 9px 8px 8px; border: 1.5px solid currentColor; border-radius: 5px; }
-.context-option-mark.is-event i::before { content: ""; position: absolute; left: 4px; right: 4px; top: 6px; height: 2px; border-radius: 2px; background: currentColor; box-shadow: 0 6px 0 #abb5c0; }
-.context-option-mark.is-event b { position: absolute; right: 5px; top: 5px; width: 7px; height: 7px; border: 2px solid #f5f7fa; border-radius: 50%; background: var(--guide-blue); box-sizing: content-box; }
+.context-option-mark { box-sizing: border-box; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: 1px solid #d8dfe7; border-radius: 12px; background: #f5f7fa; color: #475463; }
+.context-option-mark svg { display: block; flex: 0 0 24px; width: 24px; height: 24px; }
 .context-option-mark.is-nearby { border-radius: 50%; }
-.context-option-mark.is-nearby::before, .context-option-mark.is-nearby::after { content: ""; position: absolute; border: 1.5px solid currentColor; border-radius: 50%; }
-.context-option-mark.is-nearby::before { inset: 7px; opacity: .35; }
-.context-option-mark.is-nearby::after { inset: 13px; opacity: .65; }
-.context-option-mark.is-nearby i { position: absolute; z-index: 1; left: 16px; top: 16px; width: 6px; height: 6px; border-radius: 50%; background: var(--guide-blue); }
-.context-option-mark.is-nearby b { position: absolute; right: 5px; top: 5px; width: 6px; height: 6px; border: 2px solid #f5f7fa; border-radius: 50%; background: #aab4bf; }
 .context-switcher-note { margin: 11px 2px 0; color: #6f7d8b; font-size: 12px; line-height: 1.5; }
 .context-manage-button { width: 100%; min-height: 44px; display: flex; align-items: center; justify-content: space-between; margin-top: 7px; padding: 0 2px; border: 0; background: transparent; color: #285fae; font-size: 13px; font-weight: 760; cursor: pointer; }
 .context-manage-button b { font-size: 15px; }

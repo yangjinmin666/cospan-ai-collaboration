@@ -17,7 +17,7 @@ function pageHarness(name, sharedApp) {
   vm.runInNewContext(fs.readFileSync(filename, "utf8"), {
     Page: (page) => { definition = page; }, require: createRequire(filename),
     getApp: () => app, wx: { showToast: (value) => toasts.push(value), showActionSheet: () => {},
-      switchTab: (value) => navigation.push(value.url), pageScrollTo: (value) => navigation.push(value.selector),
+      switchTab: (value) => navigation.push(value.url), navigateTo: (value) => navigation.push(value.url), pageScrollTo: (value) => navigation.push(value.selector),
       getLocation: ({ success }) => success({ latitude: 0, longitude: 0, accuracy: 10 }),
     },
     setTimeout, clearTimeout, setInterval, clearInterval,
@@ -42,6 +42,21 @@ function componentHarness(overrides = {}) {
     events,
   };
 }
+
+test("incomplete profiles can filter without account prompts, while social and nearby gates remain", async () => {
+  const { page, navigation, wxml } = pageHarness("discover");
+  page.setData({ profileIncomplete: true });
+  page.openFilters();
+  assert.equal(page.data.filterOpen, true);
+  assert.deepEqual(navigation, []);
+  assert.doesNotMatch(wxml, /先看看模式|class="browse-state"/);
+  page.closeFilters();
+  assert.equal(await page.sendConnection("someone"), false);
+  assert.deepEqual(navigation, ["/pages/onboarding/onboarding"]);
+  await page.toggleNearby({ detail: { value: true } });
+  assert.equal(page.data.nearbyEnabled, false);
+  assert.equal(navigation.length, 2);
+});
 
 test("filter changes stay in a draft until confirmed; cancel and reset do not change applied results", () => {
   const { page, tabBar } = pageHarness("discover");

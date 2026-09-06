@@ -7,13 +7,13 @@
     </view>
     <view class="scope-options" role="radiogroup" aria-label="选择发现范围">
       <button wx:for="{{events}}" wx:key="id" class="scope-option {{scope === 'event' && eventId === item.id ? 'selected' : ''}}" data-event-id="{{item.id}}" bindtap="selectEvent" role="radio" aria-checked="{{scope === 'event' && eventId === item.id}}">
-        <view class="scope-mark is-event" aria-hidden="true"><view class="event-outline"></view><view class="mark-dot"></view></view>
+        <view class="scope-mark is-event" aria-hidden="true"><image class="ui-icon" src="/assets/ui-event.svg" mode="aspectFit" /></view>
         <view class="scope-copy"><text class="scope-name">{{item.name}}</text><text class="scope-detail">本场推荐、附近和授权名册</text></view>
         <text class="scope-check" aria-hidden="true">{{scope === 'event' && eventId === item.id ? '✓' : '→'}}</text>
       </button>
       <view class="scope-empty" wx:if="{{!events.length}}">暂未读取到可选展会，请联网刷新页面后再试。</view>
       <button class="scope-option {{scope === 'nearby' ? 'selected' : ''}} {{!events.length || !eventId ? 'is-disabled' : ''}}" disabled="{{!events.length || !eventId}}" bindtap="selectNearby" role="radio" aria-checked="{{scope === 'nearby'}}">
-        <view class="scope-mark is-nearby" aria-hidden="true"><view class="nearby-ring"></view><view class="nearby-core"></view></view>
+        <view class="scope-mark is-nearby" aria-hidden="true"><image class="ui-icon" src="/assets/ui-nearby.svg" mode="aspectFit" /></view>
         <view class="scope-copy"><text class="scope-name">日常附近</text><text class="scope-detail">发现身边主动开放的人</text></view>
         <text class="scope-check" aria-hidden="true">{{scope === 'nearby' ? '✓' : '→'}}</text>
       </button>

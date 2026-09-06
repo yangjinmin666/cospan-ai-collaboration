@@ -25,7 +25,8 @@ test("new users can browse before publishing a collaboration profile", () => {
   assert.match(onboardingLogic, /skip\(\)[^]*switchTab\([^]*pages\/discover\/discover/);
   assert.match(discoverLogic, /profileIncomplete/);
   assert.match(discoverLogic, /openOnboarding\(\)/);
-  assert.match(discoverView, /wx:if="{{profileIncomplete}}"/);
+  assert.doesNotMatch(discoverView, /先看看模式|class="browse-state"/);
+  assert.match(discoverView, /profileIncomplete \? '完善协作资料'/);
   assert.match(discoverView, /disabled="{{profileIncomplete \|\| nearbyRequesting}}"/);
   assert.doesNotMatch(
     discoverLogic,

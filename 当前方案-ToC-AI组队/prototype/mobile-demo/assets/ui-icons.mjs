@@ -1,6 +1,7 @@
 // Shared COSPAN icon geometry. Mini-program SVGs are checked against this source.
 export const ICON_STROKE = 1.75;
 export const iconPaths = {
+  "nearby": '<circle cx="12" cy="12" r="8.25"/><circle cx="12" cy="12" r="2.5" fill="#347cf8" stroke="none"/>',
   "details": '<circle cx="5" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/>',
   "wave": '<path d="M7.5 13.2V6a1.5 1.5 0 0 1 3 0v4.6V4a1.5 1.5 0 0 1 3 0v6.6V5.7a1.5 1.5 0 0 1 3 0V11 8.5a1.5 1.5 0 0 1 3 0v5.7c0 4.5-2.6 7.2-6.8 7.2-3 0-5-1.4-6.6-3.8l-3.2-5c-.7-1.1-.5-2.1.3-2.6s1.7-.2 2.3.6l2 2.6Z"/><path d="M20 3.2c1 .7 1.6 1.7 1.8 2.8M2.3 17.8c.5 1.4 1.3 2.5 2.4 3.2"/>',
   "discover": "<circle cx=\"12\" cy=\"12\" r=\"8.25\"/><path d=\"m15.4 8.6-2.05 4.75L8.6 15.4l2.05-4.75 4.75-2.05Z\"/>",
